@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CToken">
+    <Position X="7.5" Y="2.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAIAAAAEAAQEAAAAAAAIAAA=</HashCode>
+      <FileName>CToken.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CVariant">
+    <Position X="2.75" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAgAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>CVariant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CIntVariant">
+    <Position X="2.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAACAAAAAACAAAAAAAAAAAQAAACAAAAAAAAAAAAA=</HashCode>
+      <FileName>CVariant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CFloVariant">
+    <Position X="5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABACAgAAAAAAAAAQAAACAAAAAAAAAAAAA=</HashCode>
+      <FileName>CVariant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CStrVariant">
+    <Position X="0.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAACAACAAAAAAAAAAAQAAACAAAAAAAAAAAAA=</HashCode>
+      <FileName>CVariant.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="TokenType">
+    <Position X="7.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAAIAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>CToken.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="EOperationKeyWords" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>xAQIIAmiQnTEhABpCgMIgEKFAkiBIDCCAgAAVgAIAQg=</HashCode>
+      <FileName>CToken.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

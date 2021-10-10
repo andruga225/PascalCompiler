@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="IOmodule">
+    <Position X="3.5" Y="1" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="IOmodule::States" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>IOmodule.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AEIAIAACAIBAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IOmodule.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
