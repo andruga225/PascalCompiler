@@ -33,18 +33,18 @@ void CToken::Show()
 	if(tt==ttConst)
 	{
 		std::cout << "ttConst ";
-		std::string type=constVal->getType();
-		if(type=="CIntVariant")
+		//std::string type=constVal->getType();
+		if(constVal->getType()==0)
 		{
 			CIntVariant* i =dynamic_cast<CIntVariant*>(constVal);
 			std::cout << i->getValue() << std::endl;
 		}
-		if(type=="CFlovariant")
+		if(constVal->getType()==1)
 		{
 			CFloVariant* f = dynamic_cast<CFloVariant*>(constVal);
 			std::cout << f->getValue() << std::endl;
 		}
-		if(type=="CStrVariant")
+		if(constVal->getType()==2)
 		{
 			CStrVariant* s = dynamic_cast<CStrVariant*>(constVal);
 			std::cout << s->getValue() << std::endl;

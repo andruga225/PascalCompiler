@@ -45,6 +45,15 @@ CToken* IOmodule::getNextToken()
 			while (c == ' ' || c == '\t' || c == '\n')
 				c = getNextSymbol();
 			token.push_back(c);
+
+			if(c=='?'||c=='&'||c=='%'||(c>='À'&&c<='ß')||(c>='à'&&c<='ÿ'))
+			{
+				errorses.push_back(new lexErrors(0, curSymbol));
+				while (c != ' ' || c != '\t' || c != '\n' || curSymbol != bufSize)
+					c = getNextSymbol();
+				token = "";
+			}
+					
 			if (c >= '0' && c <= '9' || c == '.') {
 				state = CONST;
 			}
@@ -55,7 +64,14 @@ CToken* IOmodule::getNextToken()
 			{
 				state = ASSIGN;
 			}
-			else
+			else if(c=='{')
+			{
+				state = COMMENT;
+			}else if(c=='}')
+			{
+				errorses.push_back(new lexErrors(3, curSymbol));
+				c = getNextSymbol();
+			}else
 			{
 				state = OPERATION;
 			}
@@ -69,6 +85,19 @@ CToken* IOmodule::getNextToken()
 				token.push_back(c);
 				c = getNextSymbol();
 			}
+			if (c == '?' || c == '&' || c == '%' || (c >= 'À' && c <= 'ß') || (c >= 'à' && c <= 'ÿ'))
+			{
+				errorses.push_back(new lexErrors(0, curSymbol));
+				while (c != ' ' || c != '\t' || c != '\n' || curSymbol != bufSize)
+					c = getNextSymbol();
+				token = "";
+			}
+			std::string k;
+			k.push_back(c);
+				if(isKeyWord(k)!=-1)
+				{
+					errorses.push_back(new lexErrors(1, curSymbol));
+				}
 			curSymbol--;
 			int o = isKeyWord(token);
 
@@ -118,11 +147,23 @@ CToken* IOmodule::getNextToken()
 				token.push_back(c);
 				c = getNextSymbol();
 			}
+
+			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+			{
+				errorses.push_back(new lexErrors(1, curSymbol));
+			}
 			curSymbol--;
 			if (fl)
 				return new CToken(ttConst, new CFloVariant(atof(token.c_str())));
 
-			return new CToken(ttConst, new CIntVariant(atoi(token.c_str())));
+			int a = atoi(token.c_str());
+
+			if (a > 32767 || a < -32768)
+			{
+				errorses.push_back(new lexErrors(5, curSymbol));
+			}
+			else
+			return new CToken(ttConst, new CIntVariant(a));
 
 		}
 		case ASSIGN:
@@ -131,6 +172,29 @@ CToken* IOmodule::getNextToken()
 			if (c == '=')
 				return new CToken(ttOperation, assign);
 		}
+		case COMMENT:
+		{
+			c = getNextSymbol();
+			while (c != '}'&&curSymbol!=bufSize)
+				c = getNextSymbol();
+
+			if (curSymbol == bufSize) {
+				errorses.push_back(new lexErrors(4, curSymbol));
+			}
+		}
 		}
 	}
 }
+
+void lexErrors::addNewString(std::string str)
+{
+	programText.push_back(str);
+}
+
+lexErrors::lexErrors(int errorCode, int pos)
+{
+	this->errorCode = errorCode;
+	this->pos = pos;
+}
+
+

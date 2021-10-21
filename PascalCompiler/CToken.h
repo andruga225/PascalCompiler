@@ -127,13 +127,75 @@ inline std::map<EOperationKeyWords, std::string> OperKeyWords{
 	{functionSy,"function"},
 	{procedureSy,"procedure"} };
 
+inline std::map<std::string,EOperationKeyWords> ReverseOperKeyWords{
+	{"*", star},
+	{"/",slash},
+	{"=",equal},
+	{ ",",comma},
+	{";",semicolon},
+	{":",colon},
+	{".",point},
+	{"^",arrow},
+	{"(",leftpar},
+	{")",rightpar},
+	{ "[",lbracket},
+	{"]",rbracket},
+	{"{",flpar},
+	{"}",frpar},
+	{"<",later},
+	{ ">",greater},
+	{"<=",laterequal},
+	{">=",greaterequal},
+	{"<>",latergreater},
+	{"+",plus},
+	{"-",minus},
+	{":=",assign},
+	{"..",twopoints},
+	{"if",ifSy},
+	{"do",doSy},
+	{"of",ofSy},
+	{"or",orSy},
+	{"in",inSy},
+	{"to",toSy},
+	{"end",endSy},
+	{"var",varSy},
+	{"div",divSy},
+	{"and",andSy},
+	{"not",notSy},
+	{"for",forSy},
+	{"mod",modSy},
+	{"nil",nilSy},
+	{"set",setSy},
+	{"the",theSy},
+	{"else",elseSy},
+	{"case",caseSy},
+	{"fyle",fileSy},
+	{"goto",gotoSy},
+	{"type",typeSy},
+	{"with",withSy},
+	{"begin",beginSy},
+	{"while",whileSy},
+	{"array",arraySy},
+	{"const",constSy},
+	{"label",labelSy},
+	{"until",untilSy},
+	{"downto",downtoSy},
+	{"packed",packedSy},
+	{"record",recordSy},
+	{"repeat",repeatSy},
+	{"program",programSy},
+	{"function",functionSy},
+	{"procedure",procedureSy} };
+
 class CToken
 {
 private:
 	TokenType tt;
-	EOperationKeyWords oper;
-	std::string ident;
-	CVariant* constVal;
+	//union{
+		EOperationKeyWords oper;
+		std::string ident;
+		CVariant* constVal;
+	//};
 public:
 	CToken(TokenType tt, EOperationKeyWords ew);
 	CToken(TokenType tt, std::string ident);

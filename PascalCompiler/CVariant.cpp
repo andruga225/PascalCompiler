@@ -10,9 +10,9 @@ int CIntVariant::getValue()
 	return value;
 }
 
-std::string CIntVariant::getType()
+int CIntVariant::getType()
 {
-	return "CIntVariant";
+	return Type::CIntVariant;
 }
 
 CIntVariant::~CIntVariant() = default;
@@ -29,9 +29,9 @@ double CFloVariant::getValue()
 
 CFloVariant::~CFloVariant() = default;
 
-std::string CFloVariant::getType()
+int CFloVariant::getType()
 {
-	return "CFloVariant";
+	return Type::CFloVariant;
 }
 
 CStrVariant::CStrVariant(std::string v)
@@ -44,9 +44,9 @@ std::string CStrVariant::getValue()
 	return value;
 }
 
-std::string CStrVariant::getType()
+int CStrVariant::getType()
 {
-	return "CStrVariant";
+	return Type::CStrVariant;
 }
 
 CStrVariant::~CStrVariant() = default;

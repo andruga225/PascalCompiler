@@ -2,8 +2,10 @@
 #include <string>
 class CVariant
 {
+protected:
+	enum Type{CIntVariant, CFloVariant, CStrVariant};
 public:
-	virtual std::string getType()=0;
+	virtual int getType()=0;
 	virtual ~CVariant()=default;
 };
 
@@ -14,7 +16,7 @@ private:
 public:
 	CIntVariant(int v);
 	int getValue();
-	std::string getType() override;
+	int getType() override;
 	~CIntVariant() override;
 };
 
@@ -25,7 +27,7 @@ private:
 public:
 	CFloVariant(double v);
 	double getValue();
-	std::string getType() override;
+	int getType() override;
 	~CFloVariant() override;
 };
 
@@ -36,6 +38,6 @@ private:
 public:
 	CStrVariant(std::string v);
 	std::string getValue();
-	std::string getType() override;
+	int getType() override;
 	~CStrVariant() override;
 };
