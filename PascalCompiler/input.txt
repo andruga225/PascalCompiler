@@ -1,2 +1,2 @@
-a:=4.35+(3*2)*(bbb-1);
-if a<=b if a<>b else b=a;
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:=4.35+(3*2)*(bbb-1);
+if a<=bфыф if a<>b else b=a;
