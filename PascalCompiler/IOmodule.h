@@ -8,7 +8,7 @@ inline std::vector<std::string> programText;//как же это ужасно, но лучше я пока
 class lexError
 {
 public:
-	enum lexErrorsCodes { bannedSymbol, wrongId, maxLenghtId, CommentNotOpen, CommentNotClose, maxLenghtInteger };
+	enum lexErrorsCodes { bannedSymbol, wrongId, maxLenghtId, CommentNotOpen, CommentNotClose, maxLenghtInteger, StrNotEnd };
 private:
 	int pos;
 	lexErrorsCodes errorCode;

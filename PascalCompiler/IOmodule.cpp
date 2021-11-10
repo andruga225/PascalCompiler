@@ -24,9 +24,9 @@ IOmodule::IOmodule(std::string input)
 	{
 		std::string s;
 		std::getline(fin, s);
+		s += '\n';
 		programText.push_back(s);
 		buf += s;
-		buf += '\n';
 	}
 
 }
@@ -55,7 +55,7 @@ CToken* IOmodule::getNextToken()
 				state = ERROR;
 			}
 					
-			if (c >= '0' && c <= '9' || c == '.') {
+			if (c >= '0' && c <= '9' || c == '.'||c==39) {
 				state = CONST;
 			}
 			else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_') {
@@ -81,7 +81,7 @@ CToken* IOmodule::getNextToken()
 		}
 		case ID:
 		{
-			char c = getNextSymbol();
+			c = getNextSymbol();
 			while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' || (c >= '0' && c <= '9'))
 			{
 				token.push_back(c);
@@ -155,6 +155,26 @@ CToken* IOmodule::getNextToken()
 		}
 		case CONST:
 		{
+			if (c == 39)
+			{
+				token = "";
+				c = getNextSymbol();
+				while (c != 39 && curSymbol < buf.size() - 1)
+				{
+					token.push_back(c);
+					c = getNextSymbol();
+				}
+
+				if (c == 39)
+					return new CToken(ttConst, new CStrVariant(token));
+
+				if (curSymbol == buf.size() - 1) {
+					curSymbol--;
+					error = new lexError(lexError::StrNotEnd, curSymbol - token.length());
+					state = ERROR;
+					break;
+				}
+			}
 			c = getNextSymbol();
 			bool fl = false;
 			while (c >= '0' && c <= '9' || c == '.') {
@@ -203,6 +223,7 @@ CToken* IOmodule::getNextToken()
 		}
 		case COMMENT:
 		{
+			token = "";
 			int errorPos = curSymbol;
 			c = getNextSymbol();
 			while (c != '}'&&curSymbol<buf.size()-1)
@@ -213,6 +234,10 @@ CToken* IOmodule::getNextToken()
 				state = ERROR;
 				break;
 			}
+
+			state = START;
+			c = getNextSymbol();
+			break;
 		}
 		case ERROR:
 		{
@@ -248,7 +273,7 @@ void lexError::show()
 		}
 	}
 
-	std::cout << programText[rowPos] << std::endl;
+	std::cout << programText[rowPos];
 	for (int i = 0; i < pos; ++i)
 		std::cout << " ";
 	std::cout << "^" << std::endl;
@@ -272,6 +297,9 @@ void lexError::show()
 		break;
 	case maxLenghtInteger:
 		std::cout << "Error: Out of range!" << std::endl;
+		break;
+	case StrNotEnd:
+		std::cout << "Error: String const not end!" << std::endl;
 		break;
 	}
 	
