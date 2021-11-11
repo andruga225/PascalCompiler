@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="lexError">
+    <Position X="6" Y="0.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="lexError::lexErrorsCodes">
+        <TypeIdentifier>
+          <NewMemberFileName>IOmodule.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAIAAAAAAAAAIBAAAAAAAAAA=</HashCode>
+      <FileName>IOmodule.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="IOmodule">
+    <Position X="3.5" Y="0.5" Width="2.25" />
+    <NestedTypes>
+      <Enum Name="IOmodule::States">
+        <TypeIdentifier>
+          <NewMemberFileName>IOmodule.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAIAIAACAIBAAAAAAAEAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IOmodule.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

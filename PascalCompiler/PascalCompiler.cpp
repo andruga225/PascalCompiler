@@ -4,7 +4,7 @@
 
 int main()
 {
-	IOmodule* CIO = new IOmodule("input.txt");
+	IOmodule* CIO = new IOmodule("test4.txt");
 	CToken* cur = nullptr;
 	do
 	{

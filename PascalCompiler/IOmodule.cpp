@@ -29,6 +29,8 @@ IOmodule::IOmodule(std::string input)
 		buf += s;
 	}
 
+	this->fin.close();
+
 }
 
 CToken* IOmodule::getNextToken()
@@ -155,6 +157,9 @@ CToken* IOmodule::getNextToken()
 		}
 		case CONST:
 		{
+			if (c == '.')
+				return new CToken(ttOperation, point);
+
 			if (c == 39)
 			{
 				token = "";
@@ -183,10 +188,17 @@ CToken* IOmodule::getNextToken()
 				c = getNextSymbol();
 			}
 
-			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')||c=='_')
 			{
 				error=new lexError(lexError::wrongId, curSymbol);
 				state = ERROR;
+				c = getNextSymbol();
+
+				while ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')|| c == '_' || (c >= '0' && c <= '9'))
+					c = getNextSymbol();
+
+				curSymbol--;
+
 				break;
 			}
 
@@ -230,6 +242,7 @@ CToken* IOmodule::getNextToken()
 				c = getNextSymbol();
 
 			if (curSymbol == buf.size()-1) {
+				curSymbol--;
 				error=new lexError(lexError::CommentNotClose, errorPos);
 				state = ERROR;
 				break;

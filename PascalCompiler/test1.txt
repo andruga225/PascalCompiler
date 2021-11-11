@@ -1,0 +1,7 @@
+program test1;
+var 13ab:integer;
+    a,b2,c1_12:real;
+begin
+if a<b and 13ab<>a then a:=b2;
+{oaoaoa}
+end.

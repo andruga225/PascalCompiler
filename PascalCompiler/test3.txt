@@ -1,0 +1,3 @@
+var a:integer}
+and some not clossing comment{
+nice tests!
