@@ -201,5 +201,9 @@ public:
 	CToken(TokenType tt, std::string ident);
 	CToken(TokenType tt, CVariant* c);
 	void Show();
+	TokenType getTokenType();
+	EOperationKeyWords getOperation();
+	std::string getIdent();
+	CVariant* getConstVal();
 };
 

@@ -51,3 +51,26 @@ void CToken::Show()
 		}
 	}
 }
+
+TokenType CToken::getTokenType()
+{
+	return tt;
+}
+
+std::string CToken::getIdent()
+{
+	return ident;
+}
+
+CVariant* CToken::getConstVal()
+{
+	return constVal;
+}
+
+EOperationKeyWords CToken::getOperation()
+{
+	return oper;
+}
+
+
+

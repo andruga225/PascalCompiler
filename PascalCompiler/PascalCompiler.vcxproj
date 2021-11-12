@@ -147,11 +147,13 @@
     <ClCompile Include="CVariant.cpp" />
     <ClCompile Include="IOmodule.cpp" />
     <ClCompile Include="PascalCompiler.cpp" />
+    <ClCompile Include="Syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CToken.h" />
     <ClInclude Include="CVariant.h" />
     <ClInclude Include="IOmodule.h" />
+    <ClInclude Include="Syntax.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
