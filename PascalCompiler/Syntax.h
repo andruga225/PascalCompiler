@@ -9,6 +9,7 @@ private:
 	void getNext();
 	void accept(EOperationKeyWords);
 	void accept(TokenType);
+	void accept(CVariant*);
 	void programme();
 	void block();
 	void constDeclarationPart();
@@ -28,13 +29,16 @@ private:
 	void fixedPart();
 	void variantPart();
 	void recordSection();
+	void tagField();
+	void variant();
+	void variantLabelsList();
 	void pluralType();
 	void fileType();
 
 	void varDeclarationPart();
 	void varDeclaration();
 
-	void constDeclaration();
+	//void constDeclaration();
 
 	void operatorDeclarationPart();
 	void _operator();
