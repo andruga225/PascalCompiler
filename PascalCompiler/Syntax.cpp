@@ -4,6 +4,7 @@ Syntax::Syntax(std::string fileName)
 {
 	CIO = new IOmodule(fileName);
 	curToken = CIO->getNextToken();
+	programme();
 }
 
 void Syntax::getNext()
@@ -25,16 +26,24 @@ void Syntax::accept(TokenType ident)
 {
 	if(curToken==nullptr||curToken->getTokenType()!=ident)
 	{
-		std::cout << "Expected identificator\n";
+		std::cout << "Expected another token type\n";
 		return;
 	}
 	getNext();
 }
 
-//void Syntax::accept(CVariant*)
-//{
-//	if(curToken==nullptr||curToken->getOperation()!=ttConst)
-//}
+bool Syntax::isOper(std::vector<EOperationKeyWords> oper)
+{
+	for(int i=0;i<oper.size();++i)
+	{
+		if (curToken->getOperation() == oper[i])
+			return true;
+	}
+
+	return false;
+		
+}
+
 
 
 void Syntax::programme()
@@ -68,7 +77,7 @@ void Syntax::constDeclarationPart() //тут подумать
 			 * у нас идентификатор, после равно, после число, после точка с зап€той
 			 */
 			accept(equal);
-			accept(ttConst); //fix? че € вообще написал?
+			accept(ttConst);
 			accept(semicolon);
 		}
 	}
@@ -104,34 +113,43 @@ void Syntax::varDeclaration()
 
 void Syntax::typesDeclarationPart()
 {
-	accept(typeSy);
+	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == typeSy) {
+		accept(typeSy);
 
-	do
-	{
-		accept(ttIdent);
-		accept(equal);
-		types();
-		accept(semicolon);
+		do
+		{
+			accept(ttIdent);
+			accept(equal);
+			types();
+			accept(semicolon);
 
-	} while (curToken->getTokenType() == ttIdent); //сложно, что типы данных не ключевые слова
+		} while (curToken->getTokenType() == ttIdent); //сложно, что типы данных не ключевые слова
+	}
 }
 
 void Syntax::types()
 {
 	/*"—емантический анализатор поможет выбрать альтернативу"
 	 * „то ж, хочетс€ верить
+	 *
+	 * upd: € сам семантический анализатор јјјјјјјјј
 	 */
-	simpleType();
-	compositeType();
+	if(curToken->getTokenType()==ttIdent) //тип переменной не ключевое слово
+		simpleType();
+	else if (curToken->getTokenType()==ttOperation&&(curToken->getOperation()==packedSy||isOper({arraySy, recordSy,setSy, fileSy})))
+		compositeType();
+	else
 	referenceType();
 }
 
 void Syntax::simpleType()
 {
-	countingType();
-	limitedType();
-
-	accept(ttIdent);//треть€ альтернатива <им€ типа>
+	if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==leftpar)
+		countingType();
+	else if(curToken->getTokenType()==ttConst)
+		limitedType();
+	else
+		accept(ttIdent);
 }
 
 void Syntax::countingType()
@@ -150,7 +168,6 @@ void Syntax::countingType()
 
 void Syntax::limitedType()
 {
-	//ttConst значит константы, здесь нужно подумать
 	accept(ttConst);
 	accept(twopoints);
 	accept(ttConst);
@@ -168,10 +185,14 @@ void Syntax::compositeType()
 
 void Syntax::unpackedCompositeType()
 {
-	regularType();
-	combinedType();
-	pluralType();
-	fileType();
+	if(curToken->getOperation()==arraySy)
+		regularType();
+	else if(curToken->getOperation()==recordSy)
+		combinedType();
+	else if(curToken->getOperation()==setSy)
+		pluralType();
+	else
+		fileType();
 }
 
 void Syntax::regularType()
@@ -198,9 +219,14 @@ void Syntax::combinedType()
 
 void Syntax::listOfFields()
 {
-	//“ут выбор тоже непон€тный
-	fixedPart();
-	variantPart();
+	if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==caseSy)
+		variantPart();
+	else {
+		fixedPart();//а тут просто <fixedPart>
+		if (curToken->getTokenType() == ttOperation && curToken->getOperation() == caseSy)
+			variantPart();//тут получаетс€ альтернатива <fixedPart><variantPart>
+	}
+	
 }
 
 void Syntax::fixedPart()
@@ -215,15 +241,17 @@ void Syntax::fixedPart()
 
 void Syntax::recordSection()
 {
-	accept(ttIdent);
-
-	while (curToken->getTokenType() == ttOperation && curToken->getOperation() == colon)
-	{
-		getNext();
+	if (curToken->getTokenType() == ttIdent) {
 		accept(ttIdent);
+
+		while (curToken->getTokenType() == ttOperation && curToken->getOperation() == colon)
+		{
+			getNext();
+			accept(ttIdent);
+		}
+		accept(colon);
+		types();
 	}
-	accept(colon);
-	types();//или пусто..
 }
 
 void Syntax::variantPart()
@@ -244,22 +272,26 @@ void Syntax::variantPart()
 
 void Syntax::tagField()
 {
-	accept(ttIdent);
-	accept(colon);//или пусто, € так понимаю, тут надо каким-то хитрым образом пусто обрабатывать везде
+	if (curToken->getTokenType() == ttIdent) {
+		accept(ttIdent);
+		accept(colon);
+	}
 }
 
 void Syntax::variant()
 {
-	variantLabelsList();
-	accept(colon);
-	accept(leftpar);
-	listOfFields();
-	accept(rightpar);//или пусто
+	if (curToken->getTokenType() == ttConst) {
+		variantLabelsList();
+		accept(colon);
+		accept(leftpar);
+		listOfFields();
+		accept(rightpar);
+	}
 }
 
 void Syntax::variantLabelsList()
 {
-	accept(ttConst);//кака€-то константа, с этим, как € уже говорил, надо разобратьс€
+	accept(ttConst);
 
 	while(curToken->getTokenType()==ttOperation&&curToken->getOperation()==comma)
 	{
@@ -282,12 +314,24 @@ void Syntax::fileType()
 	types();
 }
 
+void Syntax::referenceType()
+{
+	accept(arrow);
+	accept(ttIdent);//type name
+}
+
+
 void Syntax::operatorDeclarationPart()
+{
+	compoundOperator();
+}
+
+void Syntax::compoundOperator()
 {
 	accept(beginSy);
 	_operator();
 
-	while(curToken->getTokenType()==ttOperation&&curToken->getOperation()==semicolon)
+	while (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
 	{
 		accept(semicolon);
 		_operator();
@@ -296,16 +340,22 @@ void Syntax::operatorDeclarationPart()
 	accept(endSy);
 }
 
+
 void Syntax::_operator()
 {
 	//в нашем случае меток нет, так что сразу простой и сложный
-	simpleOperator();
-	complexOperator();//выбор тут
+	//проще выбрать сложный, в других случа€х будет простой, вроде нет пересечений с ключевыми словами
+	if (curToken->getTokenType() == ttOperation && isOper({beginSy, ifSy, whileSy, withSy}))
+		complexOperator();
+	else
+		simpleOperator();
 }
 
 void Syntax::simpleOperator()
 {
-	assignOperator();
+	//упрощенный вариант, у нас только присваивание или пустой оператор
+	if (curToken->getTokenType()==ttIdent)
+		assignOperator();
 }
 
 void Syntax::assignOperator()
@@ -318,32 +368,203 @@ void Syntax::assignOperator()
 void Syntax::expression()
 {
 	simpleExpression();
-	//or
-	simpleExpression();
-	//accept операторы отношени€
-	simpleExpression();
+
+	if(curToken->getTokenType()==ttOperation&&isOper({equal,latergreater,later,laterequal,greater,greaterequal,inSy}))
+	{
+		//ѕридумать обработку операторов отношени€, по факту от типа simpleExpression зависит
+		//—емантика уже?
+
+		//пока так дл€ проверки
+		switch (curToken->getOperation())
+		{
+		case equal:
+			accept(equal);
+			break;
+		case latergreater:
+			accept(latergreater);
+			break;
+		case later:
+			accept(later);
+			break;
+		case laterequal:
+			accept(laterequal);
+			break;
+		case greater:
+			accept(greater);
+			break;
+		case greaterequal:
+			accept(greaterequal);
+			break;
+		case inSy:
+			accept(inSy);
+			break;
+		}
+
+		simpleExpression();
+	}
+	
 }
 
 void Syntax::simpleExpression()
 {
 	term();
-	//while(+|-|or)
-	//accept(oper)
-	term();
+	while (curToken->getTokenType() == ttOperation && isOper({ plus,minus,orSy }))
+	{
+		//пока так, дл€ проверки работы в целом анализатора
+		switch(curToken->getOperation())
+		{
+		case plus:
+			accept(plus);
+			break;
+		case minus:
+			accept(minus);
+			break;
+		case orSy:
+			accept(orSy);
+			break;
+		}
+		term();
+	}
 }
 
 void Syntax::term()
 {
 	factor();
-	//while(*|/|div|mod|and)
-	//accept(oper)
-	factor();
+	while (curToken->getTokenType() == ttOperation && isOper({ star,slash,divSy,modSy,andSy })) {
+		switch (curToken->getOperation())
+		{
+		case star:
+			accept(star);
+			break;
+		case slash:
+			accept(slash);
+			break;
+		case divSy:
+			accept(divSy);
+			break;
+		case modSy:
+			accept(modSy);
+			break;
+		case andSy:
+			accept(andSy);
+			break;
+		}
+		factor();
+	}
 }
 
 void Syntax::factor()
 {
-	
+	if (curToken->getTokenType() == ttIdent)
+		accept(ttIdent);
+	else if (curToken->getTokenType() == ttConst)
+		accept(ttConst);
+	else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==leftpar)
+	{
+		accept(leftpar);
+		expression();
+		accept(rightpar);
+	}else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==lbracket)
+	{
+		accept(lbracket);
+		listOfElements();
+		accept(rbracket);
+	}else
+	{
+		accept(notSy);
+		factor();
+	}
 }
+
+void Syntax::listOfElements()
+{
+	//супер сложна€ альтернатива, но попробуем
+	if (curToken->getTokenType()==ttIdent||curToken->getTokenType()==ttConst||
+		(curToken->getTokenType()==ttOperation&&isOper({leftpar,lbracket,nilSy}))) {
+		element();
+
+		while (curToken->getTokenType() == ttOperation && curToken->getOperation() == comma)
+		{
+			accept(comma);
+			element();
+		}
+	}
+}
+
+void Syntax::element()
+{
+	expression();
+
+	if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==twopoints)
+	{
+		accept(twopoints);
+		expression();
+	}
+}
+
+void Syntax::complexOperator()
+{
+	if (curToken->getOperation() == beginSy)
+		compoundOperator();
+	else if (curToken->getOperation() == ifSy||curToken->getOperation()==caseSy)
+		choosingOperator();
+	else if (isOper({whileSy,repeatSy,forSy}))
+		loopOperator();
+	else
+		joinOperator();
+}
+
+void Syntax::choosingOperator()
+{
+	if (curToken->getOperation() == ifSy)
+		ifStatement();
+	//else caseStatement ???
+}
+
+void Syntax::ifStatement()
+{
+	accept(ifSy);
+	expression();
+	accept(thenSy);
+	_operator();
+	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == elseSy)
+	{
+		accept(elseSy);
+		_operator();
+	}
+}
+
+void Syntax::loopOperator()
+{
+	if (curToken->getOperation() == whileSy)
+		whileStatment();
+	/*
+	 * else if(curToken->getOperation()==repeatSy)
+	 *     repeatStatement();
+	 * else
+	 *     forStatement();
+	 */
+}
+
+void Syntax::whileStatment()
+{
+	accept(whileSy);
+	expression();
+	accept(doSy);
+	_operator();
+}
+
+void Syntax::joinOperator()
+{
+	//просто так
+}
+
+
+
+
+
+
+
 
 
 

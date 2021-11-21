@@ -1,0 +1,11 @@
+program Evklid;
+{ определение наибольшего общего делителя }
+	var M, N :integer;
+	begin
+	  while M <> N do
+	    begin
+	     if M>N
+               then M := M-N
+               else N := N - M
+            end;
+	end.

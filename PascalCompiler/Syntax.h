@@ -6,16 +6,18 @@ class Syntax
 private:
 	IOmodule* CIO;
 	CToken* curToken;
+	//Help functions
 	void getNext();
 	void accept(EOperationKeyWords);
 	void accept(TokenType);
-	void accept(CVariant*);
+	bool isOper(std::vector<EOperationKeyWords>);
+
+	//¡Õ‘
 	void programme();
 	void block();
 	void constDeclarationPart();
 
 	void typesDeclarationPart();
-	void typesDeclaration();
 	void types();
 	void simpleType();
 	void compositeType();
@@ -41,18 +43,21 @@ private:
 	//void constDeclaration();
 
 	void operatorDeclarationPart();
+	void compoundOperator();
 	void _operator();
 	void simpleOperator();
 	void assignOperator();
 	void complexOperator();
-	void compositeOperator();
 	void choosingOperator();
+	void ifStatement();
 	void loopOperator();
-	void conditionalOperator();
+	void joinOperator();
 	void expression();
 	void simpleExpression();
 	void term();
 	void factor();
+	void listOfElements();
+	void element();
 
 	void whileStatment();
 public:

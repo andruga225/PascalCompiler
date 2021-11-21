@@ -1,17 +1,11 @@
 ﻿// PascalCompiler.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
 //
-#include "IOmodule.h"
+#include "Syntax.h"
 
 int main()
 {
-	IOmodule* CIO = new IOmodule("test4.txt");
-	CToken* cur = nullptr;
-	do
-	{
-		cur = CIO->getNextToken();
-		if(cur!=NULL)
-			cur->Show();
-	} while (cur != NULL);
+	Syntax* compiler = new Syntax("SyntaxTest1.txt");
+	std::cout << "Good!";
 }
 
 // Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
