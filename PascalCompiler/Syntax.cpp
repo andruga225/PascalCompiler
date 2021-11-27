@@ -559,6 +559,106 @@ void Syntax::joinOperator()
 	//просто так
 }
 
+EType CType::getType()
+{
+	return myType;
+}
+
+void CType::setType(CType curType)
+{
+	myType = curType.getType();
+}
+
+CIntType::CIntType()
+{
+	myType = et_integer;
+	value = 0; //по умолчанию 0 пропишем
+}
+
+bool CIntType::isDerivedTo(CType curType)
+{
+	/*
+	 * Целочисленное можно привести к целочисленному и вещественному
+	 */
+	if (curType.getType() == et_integer || curType.getType() == et_float)
+		return true;
+	return false;
+}
+
+CType CIntType::derivedTo(CType left, CType right)
+{
+	left.setType(right);
+	return left;
+}
+
+CFloatType::CFloatType()
+{
+	myType = et_float;
+	value = 0;
+}
+
+bool CFloatType::isDerivedTo(CType curType)
+{
+	/*
+	 * Вроде можно привести только к вещественному
+	 */
+	if (curType.getType() == et_float)
+		return true;
+	return false;
+}
+
+CType CType::derivedTo(CType left, CType right)
+{
+	return left;
+}
+
+CStrType::CStrType()
+{
+	myType = et_string;
+	value = "";
+}
+
+bool CStrType::isDerivedTo(CType curType)
+{
+	/*
+	 * Только к строке
+	 */
+	if (curType.getType() == et_string)
+		return true;
+	return false;
+}
+
+CType CStrType::derivedTo(CType left, CType right)
+{
+	return left;
+}
+
+CBoolType::CBoolType()
+{
+	value = false;
+	myType = et_boolean;
+}
+
+bool CBoolType::isDerivedTo(CType curType)
+{
+	if (curType.getType() == et_boolean)
+		return true;
+	return false;
+}
+
+CType CBoolType::derivedTo(CType left, CType right)
+{
+	return left;
+}
+
+
+
+
+
+
+
+
+
 
 
 
