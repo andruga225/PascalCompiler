@@ -1,0 +1,12 @@
+program SyntaxTest4;
+var a,b,c,d,x:real;
+begin
+     d:=b-4*a*c;
+     if d<0 then begin
+	x:=-1;
+     end else if d=0 then begin
+        x:=(-b)/2*a;
+     end else begin
+        x:=(-b+d)/2*a;
+     end
+end.

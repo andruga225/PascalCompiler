@@ -4,7 +4,7 @@
 
 int main()
 {
-	Syntax* compiler = new Syntax("SyntaxTest1.txt");
+	Syntax* compiler = new Syntax("SyntaxTest4.txt");
 	std::cout << "Good!";
 }
 

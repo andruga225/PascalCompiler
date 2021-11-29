@@ -1,0 +1,11 @@
+program syntaxtest2;
+type mylim=1..10;
+var x:integer;
+    integer:real;
+    m,q:array[1..10] of boolean;
+begin
+x:=5;
+q:=m;
+w:=m;
+m:=6;
+end.

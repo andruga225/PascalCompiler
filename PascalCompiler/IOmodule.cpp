@@ -158,7 +158,14 @@ CToken* IOmodule::getNextToken()
 		case CONST:
 		{
 			if (c == '.')
+			{
+				c = getNextSymbol();
+				if (c == '.')
+					return new CToken(ttOperation, twopoints);
+
+				curSymbol--;
 				return new CToken(ttOperation, point);
+			}
 
 			if (c == 39)
 			{
@@ -183,7 +190,18 @@ CToken* IOmodule::getNextToken()
 			c = getNextSymbol();
 			bool fl = false;
 			while (c >= '0' && c <= '9' || c == '.') {
-				if (c == '.') fl = true;
+				if (c == '.')
+				{
+					c = getNextSymbol();
+					if (c == '.')
+					{
+						curSymbol--;
+						break;
+					}
+
+					curSymbol--;
+					fl = true;
+				}
 				token.push_back(c);
 				c = getNextSymbol();
 			}

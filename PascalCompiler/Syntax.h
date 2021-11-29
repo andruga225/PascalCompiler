@@ -65,54 +65,59 @@ public:
 	Syntax(std::string);
 };
 
-enum EType{et_integer, et_float, et_string, et_boolean};
-
-class CType
-{
-protected:
-	EType myType;
-public:
-	virtual bool isDerivedTo(CType);
-	virtual CType derivedTo(CType, CType);
-	EType getType();
-	void setType(CType);
-};
-
-class CIntType: public CType
-{
-	int value;
-public:
-	bool isDerivedTo(CType) override;
-	CType derivedTo(CType, CType) override;
-	CIntType();
-};
-
-class CFloatType: public CType
-{
-	double value;
-public:
-	bool isDerivedTo(CType) override;
-	CType derivedTo(CType, CType) override;
-	CFloatType();
-};
-
-class CStrType: public CType
-{
-	std::string value;
-public:
-	bool isDerivedTo(CType) override;
-	CType derivedTo(CType, CType) override;
-	CStrType();
-};
-
-class CBoolType: public CType
-{
-	bool value;
-public:
-	bool isDerivedTo(CType) override;
-	CType derivedTo(CType, CType) override;
-	CBoolType();
-};
-
-std::map<std::string, CType> aviableTypes;
+//enum EType{et_integer, et_float, et_string, et_boolean};
+//
+//class CType
+//{
+//protected:
+//	EType myType;
+//public:
+//	virtual bool isDerivedTo(CType&);
+//	virtual void derivedTo(CType&);
+//	EType  getType();
+//	void setType(CType&);
+//	virtual ~CType() = 0;
+//};
+//
+//class CIntType: public CType
+//{
+//	int value;
+//public:
+//	bool isDerivedTo(CType&) override;
+//	void derivedTo(CType&) override;
+//	CIntType();
+//	~CIntType() override;
+//};
+//
+//class CFloatType: public CType
+//{
+//	double value;
+//public:
+//	bool isDerivedTo(CType&) override;
+//	void derivedTo(CType&) override;
+//	CFloatType();
+//	~CFloatType() override;
+//};
+//
+//class CStrType: public CType
+//{
+//	std::string value;
+//public:
+//	bool isDerivedTo(CType&) override;
+//	void derivedTo(CType&) override;
+//	CStrType();
+//	~CStrType() override;
+//};
+//
+//class CBoolType: public CType
+//{
+//	bool value;
+//public:
+//	bool isDerivedTo(CType&) override;
+//	void derivedTo(CType&) override;
+//	CBoolType();
+//	~CBoolType() override;
+//};
+//
+//inline std::map<std::string, CType*> aviableTypes;
 
