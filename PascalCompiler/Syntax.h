@@ -18,8 +18,8 @@ private:
 	void constDeclarationPart();
 
 	void typesDeclarationPart();
-	void types();
-	void simpleType();
+	void types(std::vector<std::string>);
+	void simpleType(std::vector<std::string>);
 	void compositeType();
 	void referenceType();
 	void countingType();
@@ -65,59 +65,59 @@ public:
 	Syntax(std::string);
 };
 
-//enum EType{et_integer, et_float, et_string, et_boolean};
-//
-//class CType
-//{
-//protected:
-//	EType myType;
-//public:
-//	virtual bool isDerivedTo(CType&);
-//	virtual void derivedTo(CType&);
-//	EType  getType();
-//	void setType(CType&);
-//	virtual ~CType() = 0;
-//};
-//
-//class CIntType: public CType
-//{
-//	int value;
-//public:
-//	bool isDerivedTo(CType&) override;
-//	void derivedTo(CType&) override;
-//	CIntType();
-//	~CIntType() override;
-//};
-//
-//class CFloatType: public CType
-//{
-//	double value;
-//public:
-//	bool isDerivedTo(CType&) override;
-//	void derivedTo(CType&) override;
-//	CFloatType();
-//	~CFloatType() override;
-//};
-//
-//class CStrType: public CType
-//{
-//	std::string value;
-//public:
-//	bool isDerivedTo(CType&) override;
-//	void derivedTo(CType&) override;
-//	CStrType();
-//	~CStrType() override;
-//};
-//
-//class CBoolType: public CType
-//{
-//	bool value;
-//public:
-//	bool isDerivedTo(CType&) override;
-//	void derivedTo(CType&) override;
-//	CBoolType();
-//	~CBoolType() override;
-//};
-//
-//inline std::map<std::string, CType*> aviableTypes;
+enum EType{et_integer, et_float, et_string, et_boolean};
+
+class CType
+{
+protected:
+	EType myType;
+public:
+	virtual bool isDerivedTo(CType&)=0;
+	virtual void derivedTo(CType&)=0;
+	EType  getType();
+	void setType(CType&);
+	virtual ~CType() = 0 {}
+};
+
+class CIntType: public CType
+{
+	int value;
+public:
+	bool isDerivedTo(CType&) override;
+	void derivedTo(CType&) override;
+	CIntType();
+	~CIntType() override;
+};
+
+class CFloatType: public CType
+{
+	double value;
+public:
+	bool isDerivedTo(CType&) override;
+	void derivedTo(CType&) override;
+	CFloatType();
+	~CFloatType() override;
+};
+
+class CStrType: public CType
+{
+	std::string value;
+public:
+	bool isDerivedTo(CType&) override;
+	void derivedTo(CType&) override;
+	CStrType();
+	~CStrType() override;
+};
+
+class CBoolType: public CType
+{
+	bool value;
+public:
+	bool isDerivedTo(CType&) override;
+	void derivedTo(CType&) override;
+	CBoolType();
+	~CBoolType() override;
+};
+
+inline std::map<std::string, CType*> aviableTypes;
 

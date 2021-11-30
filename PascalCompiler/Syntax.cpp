@@ -98,16 +98,19 @@ void Syntax::varDeclarationPart()
 
 void Syntax::varDeclaration()
 {
+	std::vector<std::string> variablesWithoutTypes;
+	variablesWithoutTypes.push_back(curToken->getIdent());
 	accept(ttIdent);
 	while(curToken->getTokenType()==ttOperation&&curToken->getOperation()==comma)
 	{
 		getNext();
+		variablesWithoutTypes.push_back(curToken->getIdent());
 		accept(ttIdent);
 	}
 
 	accept(colon);
 
-	types();
+	types(variablesWithoutTypes);
 }
 
 void Syntax::typesDeclarationPart()
@@ -119,14 +122,14 @@ void Syntax::typesDeclarationPart()
 		{
 			accept(ttIdent);
 			accept(equal);
-			types();
+			types({});
 			accept(semicolon);
 
 		} while (curToken->getTokenType() == ttIdent); //сложно, что типы данных не ключевые слова
 	}
 }
 
-void Syntax::types()
+void Syntax::types(std::vector<std::string> variablesWithoutType)
 {
 	/*"Семантический анализатор поможет выбрать альтернативу"
 	 * Что ж, хочется верить
@@ -134,21 +137,39 @@ void Syntax::types()
 	 * upd: я сам семантический анализатор ААААААААА
 	 */
 	if(curToken->getTokenType()==ttIdent||(curToken->getTokenType()==ttOperation&&curToken->getOperation()==leftpar)||curToken->getTokenType()==ttConst) //тип переменной не ключевое слово
-		simpleType();
+		simpleType(variablesWithoutType);
 	else if (curToken->getTokenType()==ttOperation&&(curToken->getOperation()==packedSy||isOper({arraySy, recordSy,setSy, fileSy})))
 		compositeType();
 	else
 	referenceType();
 }
 
-void Syntax::simpleType()
+void Syntax::simpleType(std::vector<std::string> variablesWithoutType)
 {
 	if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==leftpar)
 		countingType();
 	else if(curToken->getTokenType()==ttConst)
 		limitedType();
 	else
+	{
+		if(curToken->getTokenType()==ttIdent)
+		{
+			if (curToken->getIdent() == "integer")
+				for (int i = 0; i < variablesWithoutType.size(); ++i)
+					aviableTypes[variablesWithoutType[i]] = new CIntType();
+			if(curToken->getIdent()=="real")
+				for (int i = 0; i < variablesWithoutType.size(); ++i)
+					aviableTypes[variablesWithoutType[i]] = new CFloatType();
+			if (curToken->getIdent() == "string")
+				for (int i = 0; i < variablesWithoutType.size(); ++i)
+					aviableTypes[variablesWithoutType[i]] = new CStrType();
+			if (curToken->getIdent() == "boolean")
+				for (int i = 0; i < variablesWithoutType.size(); ++i)
+					aviableTypes[variablesWithoutType[i]] = new CBoolType();
+		}
+		
 		accept(ttIdent);
+	}
 }
 
 void Syntax::countingType()
@@ -198,15 +219,15 @@ void Syntax::regularType()
 {
 	accept(arraySy);
 	accept(lbracket);
-	simpleType();
+	simpleType({});
 	while(curToken->getTokenType()==ttOperation&&curToken->getOperation()==comma)
 	{
 		getNext();
-		simpleType();
+		simpleType({});
 	}
 	accept(rbracket);
 	accept(ofSy);
-	types();
+	types({});
 }
 
 void Syntax::combinedType()
@@ -249,7 +270,7 @@ void Syntax::recordSection()
 			accept(ttIdent);
 		}
 		accept(colon);
-		types();
+		types({});
 	}
 }
 
@@ -303,14 +324,14 @@ void Syntax::pluralType()
 {
 	accept(setSy);
 	accept(ofSy);
-	simpleType();
+	simpleType({});
 }
 
 void Syntax::fileType()
 {
 	accept(fileSy);
 	accept(ofSy);
-	types();
+	types({});
 }
 
 void Syntax::referenceType()
@@ -563,138 +584,104 @@ void Syntax::joinOperator()
 
 
 
-//CIntType::CIntType()
-//{
-//	myType = et_integer;
-//	value = 0; //по умолчанию 0 пропишем
-//}
-//
-//CIntType::~CIntType() = default;
-//
-//bool CIntType::isDerivedTo(CType& curType)
-//{
-//	/*
-//	 * Целочисленное можно привести к целочисленному и вещественному
-//	 */
-//	if (curType.getType() == et_integer || curType.getType() == et_float)
-//		return true;
-//	return false;
-//}
-//
-//void CIntType::derivedTo(CType& right)
-//{
-//	//static_cast<CIntType*>(this)
-//}
-//
-//CFloatType::CFloatType()
-//{
-//	myType = et_float;
-//	value = 0;
-//}
-//
-//CFloatType::~CFloatType() = default;
-//
-//bool CFloatType::isDerivedTo(CType& curType)
-//{
-//	/*
-//	 * Вроде можно привести только к вещественному
-//	 */
-//	if (curType.getType() == et_float)
-//		return true;
-//	return false;
-//}
-//
-//void CFloatType::derivedTo(CType&)
-//{
-//	
-//}
-//
-//
-//CStrType::CStrType()
-//{
-//	myType = et_string;
-//	value = "";
-//}
-//
-//CStrType::~CStrType() = default;
-//
-//bool CStrType::isDerivedTo(CType& curType)
-//{
-//	/*
-//	 * Только к строке
-//	 */
-//	if (curType.getType() == et_string)
-//		return true;
-//	return false;
-//}
-//
-//void CStrType::derivedTo(CType&)
-//{
-//	
-//}
-//
-//
-//CBoolType::CBoolType()
-//{
-//	value = false;
-//	myType = et_boolean;
-//}
-//
-//CBoolType::~CBoolType() = default;
-//
-//bool CBoolType::isDerivedTo(CType& curType)
-//{
-//	if (curType.getType() == et_boolean)
-//		return true;
-//	return false;
-//}
-//
-//void CBoolType::derivedTo(CType&)
-//{
-//	
-//}
+CIntType::CIntType()
+{
+	myType = et_integer;
+	value = 0; //по умолчанию 0 пропишем
+}
+
+CIntType::~CIntType() = default;
+
+bool CIntType::isDerivedTo(CType& curType)
+{
+	/*
+	 * Целочисленное можно привести к целочисленному и вещественному
+	 */
+	if (curType.getType() == et_integer || curType.getType() == et_float)
+		return true;
+	return false;
+}
+
+void CIntType::derivedTo(CType& left)
+{
+	if (left.getType() == et_float)
+		dynamic_cast<CFloatType*>(this);
+}
+
+CFloatType::CFloatType()
+{
+	myType = et_float;
+	value = 0;
+}
+
+CFloatType::~CFloatType() = default;
+
+bool CFloatType::isDerivedTo(CType& curType)
+{
+	/*
+	 * Вроде можно привести только к вещественному
+	 */
+	if (curType.getType() == et_float)
+		return true;
+	return false;
+}
+
+void CFloatType::derivedTo(CType&)
+{
+	
+}
 
 
+CStrType::CStrType()
+{
+	myType = et_string;
+	value = "";
+}
+
+CStrType::~CStrType() = default;
+
+bool CStrType::isDerivedTo(CType& curType)
+{
+	/*
+	 * Только к строке
+	 */
+	if (curType.getType() == et_string)
+		return true;
+	return false;
+}
+
+void CStrType::derivedTo(CType&)
+{
+	
+}
 
 
+CBoolType::CBoolType()
+{
+	value = false;
+	myType = et_boolean;
+}
 
+CBoolType::~CBoolType() = default;
 
+bool CBoolType::isDerivedTo(CType& curType)
+{
+	if (curType.getType() == et_boolean)
+		return true;
+	return false;
+}
 
+void CBoolType::derivedTo(CType&)
+{
+	
+}
 
+EType CType::getType()
+{
+	return myType;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void CType::setType(CType& curToken)
+{
+	myType = curToken.getType();
+}

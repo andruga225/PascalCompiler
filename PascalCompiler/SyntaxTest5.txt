@@ -1,0 +1,12 @@
+program DEC_BIN;
+var digits:(a,b);
+    res:string; 
+    d:0..1;
+begin
+   res:='';
+   while (x<>0) do begin
+      d:=x mod 2; res:=digits+res;
+      x:=x div 2;
+   end;
+   DEC_BIN:=res;
+end.
