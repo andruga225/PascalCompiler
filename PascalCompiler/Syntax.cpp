@@ -74,9 +74,29 @@ void Syntax::constDeclarationPart() //тут подумать
 			/*
 			 * у нас идентификатор, после равно, после число, после точка с запятой
 			 */
+			std::string variable=curToken->getIdent();
 			accept(ttIdent);
 			accept(equal);
-			accept(ttConst);
+			if (curToken->getTokenType() == ttConst) {
+				if (curToken->getConstVal()->getType() == 0)
+				{
+					CIntVariant* i = dynamic_cast<CIntVariant*>(curToken->getConstVal());
+					aviableTypes[variable]=new CIntType(i->getValue(), true);
+				}
+
+				if (curToken->getConstVal()->getType() == 1)
+				{
+					CFloVariant* f = dynamic_cast<CFloVariant*>(curToken->getConstVal());
+					aviableTypes[variable]=new CFloatType(f->getValue(), true);
+				}
+
+				if (curToken->getConstVal()->getType() == 2)
+				{
+					CStrVariant* s = dynamic_cast<CStrVariant*>(curToken->getConstVal());
+					aviableTypes[variable]=new CStrType(s->getValue(), true);
+				}
+				accept(ttConst);
+			}
 			accept(semicolon);
 		}
 	}
@@ -382,14 +402,35 @@ void Syntax::simpleOperator()
 
 void Syntax::assignOperator()
 {
-	accept(ttIdent);
+	std::string variable = "";
+	if (curToken->getTokenType() == ttIdent) {
+
+		variable = curToken->getIdent();
+		accept(ttIdent);
+	}
 	accept(assign);
-	expression();
+	auto exp=expression();
+
+	CType* left=nullptr;
+	if (aviableTypes.find(variable) != aviableTypes.end())
+		left = aviableTypes[variable];
+
+	if(left==nullptr)
+	{
+		//err
+	}
+	else if(left->isDerivedFrom(exp))
+	{
+		left->derivedTo(exp);
+	}else
+	{
+		std::cout << "error in assign\n";
+	}
 }
 
-void Syntax::expression()
+CType* Syntax::expression()
 {
-	simpleExpression();
+	auto left=simpleExpression();
 
 	if(curToken->getTokenType()==ttOperation&&isOper({equal,latergreater,later,laterequal,greater,greaterequal,inSy}))
 	{
@@ -422,18 +463,23 @@ void Syntax::expression()
 			break;
 		}
 
-		simpleExpression();
+		auto right=simpleExpression();
+
+		return new CBoolType();
 	}
+
+	return left;
 	
 }
 
-void Syntax::simpleExpression()
+CType* Syntax::simpleExpression()
 {
-	term();
+	CType* left=term();
+
 	while (curToken->getTokenType() == ttOperation && isOper({ plus,minus,orSy }))
 	{
 		//пока так, для проверки работы в целом анализатора
-		switch(curToken->getOperation())
+		switch (curToken->getOperation())
 		{
 		case plus:
 			accept(plus);
@@ -443,15 +489,26 @@ void Syntax::simpleExpression()
 			break;
 		case orSy:
 			accept(orSy);
-			break;
+			break;			
 		}
-		term();
+
+		CType* right = term();
+
+		if(left->isDerivedTo(right))
+		{
+			left->derivedTo(right);
+		}else
+		{
+			//error
+		}
 	}
+
+	return left;
 }
 
-void Syntax::term()
+CType* Syntax::term()
 {
-	factor();
+	auto left=factor();
 	while (curToken->getTokenType() == ttOperation && isOper({ star,slash,divSy,modSy,andSy })) {
 		switch (curToken->getOperation())
 		{
@@ -471,21 +528,74 @@ void Syntax::term()
 			accept(andSy);
 			break;
 		}
-		factor();
+		auto right=factor();
+
+		if(left->isDerivedTo(right))
+		{
+			left->derivedTo(right);
+		}
+		else {//error
+		}
 	}
+
+	return left;
 }
 
-void Syntax::factor()
+CType* Syntax::factor()
 {
 	if (curToken->getTokenType() == ttIdent)
-		accept(ttIdent);
-	else if (curToken->getTokenType() == ttConst)
-		accept(ttConst);
+	{
+		if (aviableTypes.find(curToken->getIdent()) != aviableTypes.end()) {
+			auto right=aviableTypes.find(curToken->getIdent())->second;
+			accept(ttIdent);
+			return right;
+		}
+
+		if(curToken->getIdent()=="true")
+		{
+			auto right=new CBoolType(true,false);
+			accept(ttIdent);
+			return right;
+		}
+
+		if(curToken->getIdent()=="false")
+		{
+			auto right=new CBoolType(false,false);
+			accept(ttIdent);
+			return right;
+		}
+
+		//else error
+	}
+	else if (curToken->getTokenType() == ttConst) {
+		if(curToken->getConstVal()->getType()==0)
+		{
+			CIntVariant* i = dynamic_cast<CIntVariant*>(curToken->getConstVal());
+			accept(ttConst);
+			return new CIntType(i->getValue(),false);
+		}
+
+		if(curToken->getConstVal()->getType()==1)
+		{
+			CFloVariant* f = dynamic_cast<CFloVariant*>(curToken->getConstVal());
+			accept(ttConst);
+			return new CFloatType(f->getValue(),false);
+		}
+
+		if(curToken->getConstVal()->getType()==2)
+		{
+			CStrVariant* s = dynamic_cast<CStrVariant*>(curToken->getConstVal());
+			accept(ttConst);
+			return new CStrType(s->getValue(),false);
+		}
+			
+	}
 	else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==leftpar)
 	{
 		accept(leftpar);
-		expression();
+		auto exp=expression();
 		accept(rightpar);
+		return exp;
 	}else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==lbracket)
 	{
 		accept(lbracket);
@@ -494,8 +604,10 @@ void Syntax::factor()
 	}else if(curToken->getOperation()==ttOperation&&curToken->getOperation()==notSy)
 	{
 		accept(notSy);
-		factor();
+		auto t=factor();
+		return t;
 	}
+
 }
 
 void Syntax::listOfElements()
@@ -546,7 +658,14 @@ void Syntax::choosingOperator()
 void Syntax::ifStatement()
 {
 	accept(ifSy);
-	expression();
+	auto exp=expression();
+	if(exp->isDerivedTo(new CBoolType()))
+	{
+		exp->derivedTo(new CBoolType());
+	}else
+	{
+		//error
+	}
 	accept(thenSy);
 	_operator();
 	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == elseSy)
@@ -588,47 +707,77 @@ CIntType::CIntType()
 {
 	myType = et_integer;
 	value = 0; //по умолчанию 0 пропишем
+	isConst = false;
+}
+
+CIntType::CIntType(int value,bool isConst)
+{
+	myType = et_integer;
+	this->value = value;
+	this->isConst = isConst;
 }
 
 CIntType::~CIntType() = default;
 
-bool CIntType::isDerivedTo(CType& curType)
+bool CIntType::isDerivedTo(CType* curType)
 {
 	/*
 	 * Целочисленное можно привести к целочисленному и вещественному
 	 */
-	if (curType.getType() == et_integer || curType.getType() == et_float)
+	if (curType->getType() == et_integer || curType->getType() == et_float)
 		return true;
 	return false;
 }
 
-void CIntType::derivedTo(CType& left)
+void CIntType::derivedTo(CType* right)
 {
-	if (left.getType() == et_float)
-		dynamic_cast<CFloatType*>(this);
+	this->setType(right->getType());
 }
+
+bool CIntType::isDerivedFrom(CType* curType)
+{
+	if (curType->getType() == et_integer)
+		return true;
+	return false;
+}
+
 
 CFloatType::CFloatType()
 {
 	myType = et_float;
 	value = 0;
+	isConst = false;
+}
+
+CFloatType::CFloatType(double value, bool isConst)
+{
+	myType = et_float;
+	this->value = value;
+	this->isConst = isConst;
 }
 
 CFloatType::~CFloatType() = default;
 
-bool CFloatType::isDerivedTo(CType& curType)
+bool CFloatType::isDerivedTo(CType* curType)
 {
 	/*
 	 * Вроде можно привести только к вещественному
 	 */
-	if (curType.getType() == et_float)
+	if (curType->getType() == et_float)
 		return true;
 	return false;
 }
 
-void CFloatType::derivedTo(CType&)
+void CFloatType::derivedTo(CType* right)
 {
-	
+	this->setType(right->getType());
+}
+
+bool CFloatType::isDerivedFrom(CType* curToken)
+{
+	if (curToken->getType() == et_integer || curToken->getType() == et_float)
+		return true;
+	return false;
 }
 
 
@@ -636,23 +785,38 @@ CStrType::CStrType()
 {
 	myType = et_string;
 	value = "";
+	isConst = false;
+}
+
+CStrType::CStrType(std::string value, bool isConst)
+{
+	myType = et_string;
+	this->value = value;
+	this->isConst = isConst;
 }
 
 CStrType::~CStrType() = default;
 
-bool CStrType::isDerivedTo(CType& curType)
+bool CStrType::isDerivedTo(CType* curType)
 {
 	/*
 	 * Только к строке
 	 */
-	if (curType.getType() == et_string)
+	if (curType->getType() == et_string)
 		return true;
 	return false;
 }
 
-void CStrType::derivedTo(CType&)
+void CStrType::derivedTo(CType*)
 {
 	
+}
+
+bool CStrType::isDerivedFrom(CType* curToken)
+{
+	if (curToken->getType() == et_string)
+		return true;
+	return false;
 }
 
 
@@ -660,20 +824,35 @@ CBoolType::CBoolType()
 {
 	value = false;
 	myType = et_boolean;
+	isConst = false;
+}
+
+CBoolType::CBoolType(bool value, bool isConst)
+{
+	myType = et_boolean;
+	this->value = value;
+	this->isConst = isConst;
 }
 
 CBoolType::~CBoolType() = default;
 
-bool CBoolType::isDerivedTo(CType& curType)
+bool CBoolType::isDerivedTo(CType* curType)
 {
-	if (curType.getType() == et_boolean)
+	if (curType->getType() == et_boolean)
 		return true;
 	return false;
 }
 
-void CBoolType::derivedTo(CType&)
+void CBoolType::derivedTo(CType*)
 {
 	
+}
+
+bool CBoolType::isDerivedFrom(CType* curToken)
+{
+	if (curToken->getType() == et_boolean)
+		return true;
+	return false;
 }
 
 EType CType::getType()
@@ -681,7 +860,7 @@ EType CType::getType()
 	return myType;
 }
 
-void CType::setType(CType& curToken)
+void CType::setType(EType curToken)
 {
-	myType = curToken.getType();
+	myType = curToken;
 }

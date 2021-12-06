@@ -1,0 +1,8 @@
+program semanticTest1;
+const a=3.14;
+	b=5;
+	c='avc';
+var r,l:integer;
+begin
+r:=3+5+a;
+end.

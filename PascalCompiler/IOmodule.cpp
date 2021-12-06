@@ -199,7 +199,8 @@ CToken* IOmodule::getNextToken()
 						break;
 					}
 
-					curSymbol--;
+					curSymbol-=2;
+					c = getNextSymbol();
 					fl = true;
 				}
 				token.push_back(c);
