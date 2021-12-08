@@ -11,7 +11,7 @@ protected:
 	bool isConst;
 public:
 	virtual bool isDerivedTo(CType*) = 0;
-	virtual void derivedTo(CType*) = 0;
+	virtual CType* derivedTo(CType*, CType*) = 0;
 	virtual bool isDerivedFrom(CType*) = 0;
 	EType  getType();
 	void setType(EType);
@@ -23,7 +23,7 @@ class CIntType : public CType
 	int value;
 public:
 	bool isDerivedTo(CType*) override;
-	void derivedTo(CType*) override;
+	CType* derivedTo(CType*, CType*) override;
 	bool isDerivedFrom(CType*) override;
 	CIntType();
 	CIntType(int,bool);
@@ -35,7 +35,7 @@ class CFloatType : public CType
 	double value;
 public:
 	bool isDerivedTo(CType*) override;
-	void derivedTo(CType*) override;
+	CType* derivedTo(CType*, CType*) override;
 	bool isDerivedFrom(CType*) override;
 	CFloatType();
 	CFloatType(double,bool);
@@ -47,7 +47,7 @@ class CStrType : public CType
 	std::string value;
 public:
 	bool isDerivedTo(CType*) override;
-	void derivedTo(CType*) override;
+	CType* derivedTo(CType*,CType*) override;
 	bool isDerivedFrom(CType*) override;
 	CStrType();
 	CStrType(std::string, bool);
@@ -59,7 +59,7 @@ class CBoolType : public CType
 	bool value;
 public:
 	bool isDerivedTo(CType*) override;
-	void derivedTo(CType*) override;
+	CType* derivedTo(CType*, CType*) override;
 	bool isDerivedFrom(CType*) override;
 	CBoolType();
 	CBoolType(bool,bool);

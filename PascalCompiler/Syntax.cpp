@@ -389,7 +389,7 @@ void Syntax::_operator()
 	//проще выбрать сложный, в других случа€х будет простой, вроде нет пересечений с ключевыми словами
 	if (curToken->getTokenType() == ttOperation && isOper({beginSy, ifSy, whileSy, withSy}))
 		complexOperator();
-	else
+	else 
 		simpleOperator();
 }
 
@@ -417,14 +417,14 @@ void Syntax::assignOperator()
 
 	if(left==nullptr)
 	{
-		//err
+		std::cout << "error\n";
 	}
 	else if(left->isDerivedFrom(exp))
 	{
-		left->derivedTo(exp);
+		left=left->derivedTo(left,exp);
 	}else
 	{
-		std::cout << "error in assign\n";
+		std::cout << "Types error\n";
 	}
 }
 
@@ -465,6 +465,16 @@ CType* Syntax::expression()
 
 		auto right=simpleExpression();
 
+		//¬роде можно сравнивать только приводимые типы друг с другом
+		if(left->isDerivedFrom(right))
+		{
+			left = left->derivedTo(left, right);
+		}
+		else
+		{
+			std::cout << "error\n";
+		}
+
 		return new CBoolType();
 	}
 
@@ -496,10 +506,10 @@ CType* Syntax::simpleExpression()
 
 		if(left->isDerivedTo(right))
 		{
-			left->derivedTo(right);
+			left=left->derivedTo(left,right);
 		}else
 		{
-			//error
+			std::cout << "Types error\n";
 		}
 	}
 
@@ -532,9 +542,10 @@ CType* Syntax::term()
 
 		if(left->isDerivedTo(right))
 		{
-			left->derivedTo(right);
+			left=left->derivedTo(left,right);
 		}
-		else {//error
+		else {
+			std::cout << "types error\n";
 		}
 	}
 
@@ -565,7 +576,7 @@ CType* Syntax::factor()
 			return right;
 		}
 
-		//else error
+		std::cout << "error\n";
 	}
 	else if (curToken->getTokenType() == ttConst) {
 		if(curToken->getConstVal()->getType()==0)
@@ -661,13 +672,17 @@ void Syntax::ifStatement()
 	auto exp=expression();
 	if(exp->isDerivedTo(new CBoolType()))
 	{
-		exp->derivedTo(new CBoolType());
+		exp=exp->derivedTo(exp,new CBoolType());
 	}else
 	{
-		//error
+		std::cout << "error\n";
 	}
 	accept(thenSy);
 	_operator();
+
+	//” нас артефакт!
+	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
+		accept(semicolon);
 	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == elseSy)
 	{
 		accept(elseSy);
@@ -690,7 +705,15 @@ void Syntax::loopOperator()
 void Syntax::whileStatment()
 {
 	accept(whileSy);
-	expression();
+	auto left=expression();
+	if(left->isDerivedTo(new CBoolType()))
+	{
+		left = left->derivedTo(left, new CBoolType());
+	}
+	else
+	{
+		std::cout << "error\n";
+	}
 	accept(doSy);
 	_operator();
 }
@@ -729,9 +752,10 @@ bool CIntType::isDerivedTo(CType* curType)
 	return false;
 }
 
-void CIntType::derivedTo(CType* right)
+CType* CIntType::derivedTo(CType* left, CType* right)
 {
-	this->setType(right->getType());
+	left->setType(right->getType());
+	return left;
 }
 
 bool CIntType::isDerivedFrom(CType* curType)
@@ -768,9 +792,10 @@ bool CFloatType::isDerivedTo(CType* curType)
 	return false;
 }
 
-void CFloatType::derivedTo(CType* right)
+CType* CFloatType::derivedTo(CType* left,CType* right)
 {
-	this->setType(right->getType());
+	left->setType(right->getType());
+	return left;
 }
 
 bool CFloatType::isDerivedFrom(CType* curToken)
@@ -807,9 +832,10 @@ bool CStrType::isDerivedTo(CType* curType)
 	return false;
 }
 
-void CStrType::derivedTo(CType*)
+CType* CStrType::derivedTo(CType* left, CType* right)
 {
-	
+	left->setType(right->getType());
+	return left;
 }
 
 bool CStrType::isDerivedFrom(CType* curToken)
@@ -843,9 +869,10 @@ bool CBoolType::isDerivedTo(CType* curType)
 	return false;
 }
 
-void CBoolType::derivedTo(CType*)
+CType* CBoolType::derivedTo(CType* left, CType* right)
 {
-	
+	left->setType(right->getType());
+	return left;
 }
 
 bool CBoolType::isDerivedFrom(CType* curToken)

@@ -3,6 +3,11 @@ const a=3.14;
 	b=5;
 	c='avc';
 var r,l:integer;
+    p:real;
 begin
-r:=3+5+a;
+while(p>0) do begin
+	if(r=b) then r:=r+b+1;
+	else l:=b+l;
+	p:=p+a;
+end;
 end.
