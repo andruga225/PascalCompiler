@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="CToken.cpp" />
     <ClCompile Include="CVariant.cpp" />
+    <ClCompile Include="ErrorManager.cpp" />
     <ClCompile Include="IOmodule.cpp" />
     <ClCompile Include="PascalCompiler.cpp" />
     <ClCompile Include="Syntax.cpp" />
@@ -152,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="CToken.h" />
     <ClInclude Include="CVariant.h" />
+    <ClInclude Include="ErrorManager.h" />
     <ClInclude Include="IOmodule.h" />
     <ClInclude Include="Syntax.h" />
   </ItemGroup>

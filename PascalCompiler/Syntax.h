@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IOmodule.h"
+#include "ErrorManager.h"
 
 enum EType { et_integer, et_float, et_string, et_boolean };
 
@@ -9,12 +10,14 @@ class CType
 protected:
 	EType myType;
 	bool isConst;
+	bool isError = false;
 public:
 	virtual bool isDerivedTo(CType*) = 0;
 	virtual CType* derivedTo(CType*, CType*) = 0;
 	virtual bool isDerivedFrom(CType*) = 0;
 	EType  getType();
 	void setType(EType);
+	void setError();
 	virtual ~CType() = 0 {}
 };
 
@@ -71,6 +74,7 @@ inline std::map<std::string, CType*> aviableTypes;
 class Syntax
 {
 private:
+	ErrorManager* er;
 	IOmodule* CIO;
 	CToken* curToken;
 	//Help functions
@@ -78,6 +82,7 @@ private:
 	void accept(EOperationKeyWords);
 	void accept(TokenType);
 	bool isOper(std::vector<EOperationKeyWords>);
+	void skipTo(std::vector<CToken*>);
 
 	//¡Õ‘
 	void programme();

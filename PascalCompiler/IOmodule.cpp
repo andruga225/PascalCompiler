@@ -284,6 +284,11 @@ CToken* IOmodule::getNextToken()
 	}
 }
 
+int IOmodule::getPos()
+{
+	return curSymbol;
+}
+
 lexError::lexError(lexErrorsCodes errorCode, int pos)
 {
 	this->errorCode = errorCode;

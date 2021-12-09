@@ -2,6 +2,7 @@
 
 Syntax::Syntax(std::string fileName)
 {
+	er = new ErrorManager();
 	CIO = new IOmodule(fileName);
 	curToken = CIO->getNextToken();
 	programme();
@@ -16,8 +17,7 @@ void Syntax::accept(EOperationKeyWords op)
 {
 	if(curToken==nullptr||curToken->getTokenType()!=ttOperation||curToken->getOperation()!= op)
 	{
-		std::cout << "Expected operation\n";
-		return;
+		throw "Expected operation\n";
 	}
 	getNext();
 }
@@ -26,8 +26,7 @@ void Syntax::accept(TokenType ident)
 {
 	if(curToken==nullptr||curToken->getTokenType()!=ident)
 	{
-		std::cout << "Expected another token type\n";
-		return;
+		throw "Expected another token type\n";
 	}
 	getNext();
 }
@@ -44,13 +43,72 @@ bool Syntax::isOper(std::vector<EOperationKeyWords> oper)
 		
 }
 
+void Syntax::skipTo(std::vector<CToken*> skip)
+{
+	while(true)
+	{
+		if(curToken->getTokenType()==ttIdent)
+		{
+			for(int i=0;i<skip.size();++i)
+			{
+				if(skip[i]->getTokenType()==ttIdent)
+				{
+					return;
+				}
+
+			}
+		}else if(curToken->getTokenType()==ttConst)
+		{
+			for (int i = 0; i < skip.size(); ++i)
+			{
+				if (skip[i]->getTokenType() == ttConst)
+				{
+					return;
+				}
+
+			}
+		}else if(curToken->getTokenType()==ttOperation)
+		{
+			for(int i=0;i<skip.size();++i)
+			{
+				if(skip[i]->getTokenType()==ttIdent&&skip[i]->getOperation()==curToken->getOperation())
+					return;
+			}
+		}
+
+		getNext();
+	}
+}
+
 
 
 void Syntax::programme()
 {
-	accept(programSy);
-	accept(ttIdent);
-	accept(semicolon);
+	try {
+		accept(programSy);
+	}catch(char*)
+	{
+		er->addError(PROGRAM_missed, CIO->getPos());
+		skipTo({ new CToken(ttOperation,constSy),new CToken(ttOperation,typeSy),new CToken(ttOperation,varSy),new CToken(ttOperation,beginSy) });
+		block();
+		return;
+	}
+	try {
+		accept(ttIdent);
+	}catch (char*)
+	{
+		er->addError(WaitName, CIO->getPos());
+		skipTo({ new CToken(ttOperation,constSy),new CToken(ttOperation,typeSy),new CToken(ttOperation,varSy),new CToken(ttOperation,beginSy), new CToken(ttOperation,semicolon) });
+		block();
+		return;
+	}
+	try {
+		accept(semicolon);
+	}catch (char*)
+	{
+		er->addError(WaitSemicolon, CIO->getPos());
+		skipTo({ new CToken(ttOperation,constSy),new CToken(ttOperation,typeSy),new CToken(ttOperation,varSy),new CToken(ttOperation,beginSy) });
+	}
 	block();
 	accept(point);
 }
@@ -890,4 +948,9 @@ EType CType::getType()
 void CType::setType(EType curToken)
 {
 	myType = curToken;
+}
+
+void CType::setError()
+{
+	this->isError = true;
 }

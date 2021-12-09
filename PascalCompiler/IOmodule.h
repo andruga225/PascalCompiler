@@ -29,5 +29,6 @@ private:
 public:
 	IOmodule(std::string);
 	CToken* getNextToken();
+	int getPos();
 };
 
