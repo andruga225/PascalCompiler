@@ -17,7 +17,7 @@ void Syntax::accept(EOperationKeyWords op)
 {
 	if(curToken==nullptr||curToken->getTokenType()!=ttOperation||curToken->getOperation()!= op)
 	{
-		throw "Expected operation\n";
+		throw std::invalid_argument("Expected operation\n");
 	}
 	getNext();
 }
@@ -26,7 +26,7 @@ void Syntax::accept(TokenType ident)
 {
 	if(curToken==nullptr||curToken->getTokenType()!=ident)
 	{
-		throw "Expected another token type\n";
+		throw std::invalid_argument("Expected another token type\n");
 	}
 	getNext();
 }
@@ -71,7 +71,7 @@ void Syntax::skipTo(std::vector<CToken*> skip)
 		{
 			for(int i=0;i<skip.size();++i)
 			{
-				if(skip[i]->getTokenType()==ttIdent&&skip[i]->getOperation()==curToken->getOperation())
+				if(skip[i]->getTokenType()==ttOperation&&skip[i]->getOperation()==curToken->getOperation())
 					return;
 			}
 		}
@@ -86,31 +86,65 @@ void Syntax::programme()
 {
 	try {
 		accept(programSy);
-	}catch(char*)
+	}catch(std:: exception)
 	{
 		er->addError(PROGRAM_missed, CIO->getPos());
 		skipTo({ new CToken(ttOperation,constSy),new CToken(ttOperation,typeSy),new CToken(ttOperation,varSy),new CToken(ttOperation,beginSy) });
 		block();
-		return;
+		try {
+			accept(point);
+			return;
+		}catch (std::exception)
+		{
+			er->addError(Point_missed, CIO->getPos());
+			//er->ShowErrors();
+			return;
+		}
 	}
 	try {
 		accept(ttIdent);
-	}catch (char*)
+	}catch (std::exception)
 	{
 		er->addError(WaitName, CIO->getPos());
 		skipTo({ new CToken(ttOperation,constSy),new CToken(ttOperation,typeSy),new CToken(ttOperation,varSy),new CToken(ttOperation,beginSy), new CToken(ttOperation,semicolon) });
 		block();
-		return;
+		try {
+			accept(point);
+			return;
+		}
+		catch (std::exception)
+		{
+			er->addError(Point_missed, CIO->getPos());
+			//er->ShowErrors();
+			return;
+		}
 	}
 	try {
 		accept(semicolon);
-	}catch (char*)
+	}catch (std::exception)
 	{
-		er->addError(WaitSemicolon, CIO->getPos());
+		er->addError(Semicolon_missed, CIO->getPos());
 		skipTo({ new CToken(ttOperation,constSy),new CToken(ttOperation,typeSy),new CToken(ttOperation,varSy),new CToken(ttOperation,beginSy) });
+		block();
+		try {
+			accept(point);
+			return;
+		}
+		catch (std::exception)
+		{
+			er->addError(Point_missed, CIO->getPos());
+			//er->ShowErrors();
+			return;
+		}
 	}
 	block();
-	accept(point);
+	try {
+		accept(point);
+	}catch (std::exception)
+	{
+		er->addError(Point_missed, CIO->getPos());
+		//er->ShowErrors();
+	}
 }
 
 void Syntax::block()
@@ -127,6 +161,11 @@ void Syntax::constDeclarationPart() //тут подумать
 
 		accept(constSy);
 
+		if (curToken->getTokenType() != ttIdent)
+		{
+			er->addError(WaitName, CIO->getPos());
+			skipTo({new CToken(ttIdent, ""), new CToken(ttOperation, typeSy), new CToken(ttOperation, varSy), new CToken(ttOperation, beginSy)});
+		}
 		while (curToken->getTokenType()==ttIdent)
 		{
 			/*
@@ -134,7 +173,15 @@ void Syntax::constDeclarationPart() //тут подумать
 			 */
 			std::string variable=curToken->getIdent();
 			accept(ttIdent);
-			accept(equal);
+
+			try {
+				accept(equal);
+			}catch (std:: exception)
+			{
+				er->addError(Equal_missed, CIO->getPos());
+				skipTo({ new CToken(ttOperation,semicolon), new CToken(ttOperation, typeSy), new CToken(ttOperation, varSy), new CToken(ttOperation, beginSy) });
+			}
+
 			if (curToken->getTokenType() == ttConst) {
 				if (curToken->getConstVal()->getType() == 0)
 				{
@@ -155,7 +202,14 @@ void Syntax::constDeclarationPart() //тут подумать
 				}
 				accept(ttConst);
 			}
-			accept(semicolon);
+			try {
+				accept(semicolon);
+			}catch (std::exception)
+			{
+				er->addError(Semicolon_missed, CIO->getPos());
+				skipTo({ new CToken(ttIdent, ""), new CToken(ttOperation, typeSy), new CToken(ttOperation, varSy), new CToken(ttOperation, beginSy) });
+			}
+			
 		}
 	}
 }
@@ -169,7 +223,15 @@ void Syntax::varDeclarationPart()
 		do
 		{
 			varDeclaration();
-			accept(semicolon);
+
+			try {
+				accept(semicolon);
+			}catch (std::exception)
+			{
+				er->addError(Semicolon_missed, CIO->getPos());
+				skipTo({ new CToken(ttIdent, ""),new CToken(ttOperation, beginSy) });
+			}
+
 		} while (curToken->getTokenType() == ttIdent);
 	}
 }
@@ -177,16 +239,34 @@ void Syntax::varDeclarationPart()
 void Syntax::varDeclaration()
 {
 	std::vector<std::string> variablesWithoutTypes;
-	variablesWithoutTypes.push_back(curToken->getIdent());
-	accept(ttIdent);
+
+	if(curToken->getTokenType()==ttIdent){
+		variablesWithoutTypes.push_back(curToken->getIdent());
+		accept(ttIdent);
+	}else
+	{
+		er->addError(WaitName, CIO->getPos());
+		skipTo({ new CToken(ttOperation,comma),new CToken(ttOperation,semicolon), new CToken(ttOperation,beginSy) });
+	}
 	while(curToken->getTokenType()==ttOperation&&curToken->getOperation()==comma)
 	{
 		getNext();
-		variablesWithoutTypes.push_back(curToken->getIdent());
-		accept(ttIdent);
+		try {
+			variablesWithoutTypes.push_back(curToken->getIdent());
+			accept(ttIdent);
+		}catch (std::exception)
+		{
+			er->addError(WaitName, CIO->getPos());
+			skipTo({ new CToken(ttOperation,colon),new CToken(ttOperation,comma) });
+		}
 	}
 
-	accept(colon);
+	try {
+		accept(colon);
+	}catch (std::exception)
+	{
+		
+	}
 
 	types(variablesWithoutTypes);
 }
@@ -244,9 +324,13 @@ void Syntax::simpleType(std::vector<std::string> variablesWithoutType)
 			if (curToken->getIdent() == "boolean")
 				for (int i = 0; i < variablesWithoutType.size(); ++i)
 					aviableTypes[variablesWithoutType[i]] = new CBoolType();
+			accept(ttIdent);
+		}else
+		{
+			//errror 
 		}
 		
-		accept(ttIdent);
+		
 	}
 }
 

@@ -4,7 +4,7 @@
 
 int main()
 {
-	Syntax* compiler = new Syntax("SemanticTest1.txt");
+	Syntax* compiler = new Syntax("ErrorSyntaxTest1.txt");
 	std::cout << "Good!";
 }
 

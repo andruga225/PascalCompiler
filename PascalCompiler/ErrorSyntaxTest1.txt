@@ -1,0 +1,3 @@
+ErrorSyntaxTest1;
+begin
+end.
