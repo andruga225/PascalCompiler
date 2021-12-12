@@ -45,7 +45,7 @@ bool Syntax::isOper(std::vector<EOperationKeyWords> oper)
 
 void Syntax::skipTo(std::vector<CToken*> skip)
 {
-	while(true)
+	while(curToken!=nullptr)
 	{
 		if(curToken->getTokenType()==ttIdent)
 		{
@@ -78,6 +78,12 @@ void Syntax::skipTo(std::vector<CToken*> skip)
 
 		getNext();
 	}
+
+	if(curToken==nullptr)
+	{
+		er->ShowErrors();
+		exit(0);
+	}
 }
 
 
@@ -93,11 +99,12 @@ void Syntax::programme()
 		block();
 		try {
 			accept(point);
+			er->ShowErrors();
 			return;
 		}catch (std::exception)
 		{
 			er->addError(Point_missed, CIO->getPos());
-			//er->ShowErrors();
+			er->ShowErrors();
 			return;
 		}
 	}
@@ -110,12 +117,13 @@ void Syntax::programme()
 		block();
 		try {
 			accept(point);
+			er->ShowErrors();
 			return;
 		}
 		catch (std::exception)
 		{
 			er->addError(Point_missed, CIO->getPos());
-			//er->ShowErrors();
+			er->ShowErrors();
 			return;
 		}
 	}
@@ -128,12 +136,13 @@ void Syntax::programme()
 		block();
 		try {
 			accept(point);
+			er->ShowErrors();
 			return;
 		}
 		catch (std::exception)
 		{
 			er->addError(Point_missed, CIO->getPos());
-			//er->ShowErrors();
+			er->ShowErrors();
 			return;
 		}
 	}
@@ -143,8 +152,10 @@ void Syntax::programme()
 	}catch (std::exception)
 	{
 		er->addError(Point_missed, CIO->getPos());
-		//er->ShowErrors();
+		er->ShowErrors();
 	}
+
+	er->ShowErrors();
 }
 
 void Syntax::block()
@@ -201,6 +212,11 @@ void Syntax::constDeclarationPart() //тут подумать
 					aviableTypes[variable]=new CStrType(s->getValue(), true);
 				}
 				accept(ttConst);
+			}else
+			{
+
+				er->addError(Error_in_const, CIO->getPos());
+				skipTo({ new CToken(ttOperation,semicolon), new CToken(ttOperation, typeSy), new CToken(ttOperation, varSy), new CToken(ttOperation, beginSy), new CToken(ttIdent,"") });
 			}
 			try {
 				accept(semicolon);
@@ -265,7 +281,10 @@ void Syntax::varDeclaration()
 		accept(colon);
 	}catch (std::exception)
 	{
-		
+		er->addError(Colon_missed, CIO->getPos());
+		skipTo({ new CToken(ttOperation,semicolon),new CToken(ttIdent,"") });
+		if (curToken->getTokenType() != ttIdent)
+			return;
 	}
 
 	types(variablesWithoutTypes);
@@ -298,8 +317,8 @@ void Syntax::types(std::vector<std::string> variablesWithoutType)
 		simpleType(variablesWithoutType);
 	else if (curToken->getTokenType()==ttOperation&&(curToken->getOperation()==packedSy||isOper({arraySy, recordSy,setSy, fileSy})))
 		compositeType();
-	else
-	referenceType();
+	else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==arrow)
+		referenceType();
 }
 
 void Syntax::simpleType(std::vector<std::string> variablesWithoutType)
@@ -315,22 +334,29 @@ void Syntax::simpleType(std::vector<std::string> variablesWithoutType)
 			if (curToken->getIdent() == "integer")
 				for (int i = 0; i < variablesWithoutType.size(); ++i)
 					aviableTypes[variablesWithoutType[i]] = new CIntType();
-			if(curToken->getIdent()=="real")
+			else if(curToken->getIdent()=="real")
 				for (int i = 0; i < variablesWithoutType.size(); ++i)
 					aviableTypes[variablesWithoutType[i]] = new CFloatType();
-			if (curToken->getIdent() == "string")
+			else if (curToken->getIdent() == "string")
 				for (int i = 0; i < variablesWithoutType.size(); ++i)
 					aviableTypes[variablesWithoutType[i]] = new CStrType();
-			if (curToken->getIdent() == "boolean")
+			else if (curToken->getIdent() == "boolean")
 				for (int i = 0; i < variablesWithoutType.size(); ++i)
 					aviableTypes[variablesWithoutType[i]] = new CBoolType();
+			else
+			{
+				er->addError(Type_error, CIO->getPos());
+				accept(ttIdent);
+				skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,beginSy), });
+				return;
+
+			}
 			accept(ttIdent);
 		}else
 		{
-			//errror 
+			er->addError(SimpleType_error, CIO->getPos());
+			skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,beginSy), });
 		}
-		
-		
 	}
 }
 
@@ -510,7 +536,17 @@ void Syntax::operatorDeclarationPart()
 
 void Syntax::compoundOperator()
 {
-	accept(beginSy);
+	//Тут погонять преколы, что-то тут немного не то
+	try {
+		accept(beginSy);
+	}
+	catch (std::exception)
+	{
+		er->addError(Wait_begin, CIO->getPos());
+		skipTo({ new CToken(ttOperation,ifSy),new CToken(ttOperation,whileSy), new CToken(ttIdent,""),new CToken(ttOperation,endSy) });
+		_operator();
+	}
+
 	_operator();
 
 	while (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
@@ -521,7 +557,12 @@ void Syntax::compoundOperator()
 		_operator();
 	}
 
-	accept(endSy);
+	try {
+		accept(endSy);
+	}catch (std::exception)
+	{
+		er->addError(Wait_end,CIO->getPos());		
+	}
 }
 
 
@@ -550,15 +591,24 @@ void Syntax::assignOperator()
 		variable = curToken->getIdent();
 		accept(ttIdent);
 	}
-	accept(assign);
+	try {
+		accept(assign);
+	}catch (std::exception)
+	{
+		er->addError(Assign_missed, CIO->getPos());
+		skipTo({new CToken(ttIdent,""),new CToken(ttConst,nullptr),new CToken(ttOperation,semicolon),new CToken(ttOperation,leftpar)});
+	}
+
 	auto exp=expression();
 
 	CType* left=nullptr;
 	if (aviableTypes.find(variable) != aviableTypes.end())
 		left = aviableTypes[variable];
 
+
 	if(left==nullptr)
 	{
+		//semntic error
 		std::cout << "error\n";
 	}
 	else if(left->isDerivedFrom(exp))
@@ -566,6 +616,7 @@ void Syntax::assignOperator()
 		left=left->derivedTo(left,exp);
 	}else
 	{
+		//semantic error
 		std::cout << "Types error\n";
 	}
 }
@@ -718,7 +769,8 @@ CType* Syntax::factor()
 			return right;
 		}
 
-		std::cout << "error\n";
+		er->addError(WaitName, CIO->getPos());
+		skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,doSy),new CToken(ttOperation,thenSy),new CToken(ttOperation,endSy) });
 	}
 	else if (curToken->getTokenType() == ttConst) {
 		if(curToken->getConstVal()->getType()==0)
@@ -747,7 +799,14 @@ CType* Syntax::factor()
 	{
 		accept(leftpar);
 		auto exp=expression();
-		accept(rightpar);
+
+		try {
+			accept(rightpar);
+		}catch (std::exception)
+		{
+			er->addError(Rightpar_missed, CIO->getPos());
+			getNext();
+		}
 		return exp;
 	}else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==lbracket)
 	{
@@ -819,7 +878,15 @@ void Syntax::ifStatement()
 	{
 		std::cout << "error\n";
 	}
-	accept(thenSy);
+
+	try {
+		accept(thenSy);
+	}catch(std::exception)
+	{
+		er->addError(Then_missed, CIO->getPos());
+		skipTo({ new CToken(ttIdent,""),new CToken(ttOperation,beginSy),new CToken(ttOperation,whileSy), new CToken(ttOperation,ifSy) });
+	}
+
 	_operator();
 
 	//У нас артефакт!
@@ -856,7 +923,14 @@ void Syntax::whileStatment()
 	{
 		std::cout << "error\n";
 	}
-	accept(doSy);
+
+	try {
+		accept(doSy);
+	}catch (std::exception)
+	{
+		er->addError(Do_missed, CIO->getPos());
+		skipTo({ new CToken(ttIdent,""),new CToken(ttOperation,beginSy),new CToken(ttOperation,whileSy), new CToken(ttOperation,ifSy) });
+	}
 	_operator();
 }
 

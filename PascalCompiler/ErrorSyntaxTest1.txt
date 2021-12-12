@@ -1,3 +1,5 @@
-ErrorSyntaxTest1;
+{program}
+{ErrorSyntaxTest1; }
+program ErrorSyntaxTest1
 begin
-end.
+end
