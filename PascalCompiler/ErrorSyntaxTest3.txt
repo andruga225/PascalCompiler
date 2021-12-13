@@ -1,0 +1,10 @@
+program ErrorSyntaxTest3;
+{var a;}
+{var ,b:integer;}
+{var a,b real;}
+{var a,b:pofdf;}
+var a;
+    c:integer
+    b:string;
+begin
+end.

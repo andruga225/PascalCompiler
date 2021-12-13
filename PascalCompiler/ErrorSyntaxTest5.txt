@@ -1,0 +1,7 @@
+program ErrorSyntaxTest5;
+begin
+if a>b a:=b
+else begin a:=s+c
+end;
+{if then a:=b;}
+end.

@@ -153,6 +153,7 @@ void Syntax::programme()
 	{
 		er->addError(Point_missed, CIO->getPos());
 		er->ShowErrors();
+		return;
 	}
 
 	er->ShowErrors();
@@ -544,11 +545,15 @@ void Syntax::compoundOperator()
 	{
 		er->addError(Wait_begin, CIO->getPos());
 		skipTo({ new CToken(ttOperation,ifSy),new CToken(ttOperation,whileSy), new CToken(ttIdent,""),new CToken(ttOperation,endSy) });
-		_operator();
+		//_operator();
 	}
 
 	_operator();
 
+	//if(curToken->getTokenType() == ttOperation && curToken->getOperation() != semicolon|| curToken->getTokenType() != ttOperation){
+	//	er->addError(Semicolon_missed, CIO->getPos());
+	//	getNext();
+	//	}
 	while (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
 	{
 		accept(semicolon);
@@ -606,19 +611,19 @@ void Syntax::assignOperator()
 		left = aviableTypes[variable];
 
 
-	if(left==nullptr)
-	{
-		//semntic error
-		std::cout << "error\n";
-	}
-	else if(left->isDerivedFrom(exp))
-	{
-		left=left->derivedTo(left,exp);
-	}else
-	{
-		//semantic error
-		std::cout << "Types error\n";
-	}
+	//if(left==nullptr)
+	//{
+	//	//semntic error
+	//	std::cout << "error\n";
+	//}
+	//else if(left->isDerivedFrom(exp))
+	//{
+	//	left=left->derivedTo(left,exp);
+	//}else
+	//{
+	//	//semantic error
+	//	std::cout << "Types error\n";
+	//}
 }
 
 CType* Syntax::expression()
@@ -659,14 +664,14 @@ CType* Syntax::expression()
 		auto right=simpleExpression();
 
 		//Вроде можно сравнивать только приводимые типы друг с другом
-		if(left->isDerivedFrom(right))
-		{
-			left = left->derivedTo(left, right);
-		}
-		else
-		{
-			std::cout << "error\n";
-		}
+		//if(left->isDerivedFrom(right))
+		//{
+		//	left = left->derivedTo(left, right);
+		//}
+		//else
+		//{
+		//	std::cout << "error\n";
+		//}
 
 		return new CBoolType();
 	}
@@ -697,13 +702,13 @@ CType* Syntax::simpleExpression()
 
 		CType* right = term();
 
-		if(left->isDerivedTo(right))
-		{
-			left=left->derivedTo(left,right);
-		}else
-		{
-			std::cout << "Types error\n";
-		}
+		//if(left->isDerivedTo(right))
+		//{
+		//	left=left->derivedTo(left,right);
+		//}else
+		//{
+		//	std::cout << "Types error\n";
+		//}
 	}
 
 	return left;
@@ -733,13 +738,13 @@ CType* Syntax::term()
 		}
 		auto right=factor();
 
-		if(left->isDerivedTo(right))
-		{
-			left=left->derivedTo(left,right);
-		}
-		else {
-			std::cout << "types error\n";
-		}
+		//if(left->isDerivedTo(right))
+		//{
+		//	left=left->derivedTo(left,right);
+		//}
+		//else {
+		//	std::cout << "types error\n";
+		//}
 	}
 
 	return left;
@@ -749,6 +754,10 @@ CType* Syntax::factor()
 {
 	if (curToken->getTokenType() == ttIdent)
 	{
+		//временно так пропишем!
+			accept(ttIdent);
+			return new CIntType();
+
 		if (aviableTypes.find(curToken->getIdent()) != aviableTypes.end()) {
 			auto right=aviableTypes.find(curToken->getIdent())->second;
 			accept(ttIdent);
@@ -769,6 +778,7 @@ CType* Syntax::factor()
 			return right;
 		}
 
+		//Тут уже семантика даже, про неописанный идентификатор...
 		er->addError(WaitName, CIO->getPos());
 		skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,doSy),new CToken(ttOperation,thenSy),new CToken(ttOperation,endSy) });
 	}
@@ -818,6 +828,11 @@ CType* Syntax::factor()
 		accept(notSy);
 		auto t=factor();
 		return t;
+	}else
+	{
+		er->addError(WaitName, CIO->getPos());
+		skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,doSy),new CToken(ttOperation,thenSy),new CToken(ttOperation,endSy) });
+		return nullptr;
 	}
 
 }
@@ -871,13 +886,13 @@ void Syntax::ifStatement()
 {
 	accept(ifSy);
 	auto exp=expression();
-	if(exp->isDerivedTo(new CBoolType()))
-	{
-		exp=exp->derivedTo(exp,new CBoolType());
-	}else
-	{
-		std::cout << "error\n";
-	}
+	//if(exp->isDerivedTo(new CBoolType()))
+	//{
+	//	exp=exp->derivedTo(exp,new CBoolType());
+	//}else
+	//{
+	//	std::cout << "error\n";
+	//}
 
 	try {
 		accept(thenSy);
@@ -889,9 +904,6 @@ void Syntax::ifStatement()
 
 	_operator();
 
-	//У нас артефакт!
-	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
-		accept(semicolon);
 	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == elseSy)
 	{
 		accept(elseSy);

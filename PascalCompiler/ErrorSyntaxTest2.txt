@@ -1,6 +1,10 @@
-program ErrorSyntaxTest2
+program ErrorSyntaxTest2;
 {const}
 {const a;} 
 {const =;}
-{begin
-end.}
+{const a=3}
+const a=3
+      b=;
+      c='str';
+begin
+end.

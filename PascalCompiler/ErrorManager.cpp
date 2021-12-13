@@ -44,7 +44,7 @@ void ErrorManager::ShowErrors()
 			std::cout << "Error: program missed\n";
 			break;
 		case Rightpar_missed:
-			std::cout << "Error: ( missed\n";
+			std::cout << "Error: ) missed\n";
 			break;
 		case Colon_missed:
 			std::cout << "Error: : missed\n";

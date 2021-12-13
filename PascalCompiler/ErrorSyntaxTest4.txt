@@ -1,0 +1,7 @@
+program ErrorSyntaxTest4;
+begin
+{a b+3;}
+{a:=;}
+{a:=(b+3;
+{a:=(b+3));}
+end.
