@@ -4,7 +4,7 @@
 
 int main()
 {
-	Syntax* compiler = new Syntax("ErrorSyntaxTest6.txt");
+	Syntax* compiler = new Syntax("ErrorSyntaxTest1.txt");
 	std::cout << "Good!";
 }
 

@@ -79,9 +79,19 @@ void ErrorManager::ShowErrors()
 		case Do_missed:
 			std::cout << "Error: do missed\n";
 			break;
+		case Name_already_describe:
+			std::cout << "Error: name already describe\n";
+			break;
+		case Name_not_describe:
+			std::cout << "Error: name not describe\n";
+			break;
+		case Irreducible_types:
+			std::cout << "Error: Irreducible types\n";
+			break;
 		}
+		strNum++;
 	}
-	strNum++;
+	//strNum++;
 
 	for (strNum; strNum < programText.size(); ++strNum)
 		std::cout << programText[strNum];

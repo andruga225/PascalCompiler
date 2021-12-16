@@ -279,6 +279,7 @@ CToken* IOmodule::getNextToken()
 			token = "";
 			delete error;
 			state = START;
+			exit(0);
 		}
 		}
 	}

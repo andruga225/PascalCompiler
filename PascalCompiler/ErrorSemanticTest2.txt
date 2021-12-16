@@ -1,0 +1,9 @@
+program ErrorSemanticTest2;
+var a,b,c:integer;
+    d:real;
+begin
+e:=a+c;
+d:=a+b;
+a:=c+d;
+a:=d+c;
+end.

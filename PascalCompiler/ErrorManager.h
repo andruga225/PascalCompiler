@@ -3,7 +3,8 @@
 
 enum ErrorCodes{SimpleType_error,WaitName,PROGRAM_missed,Rightpar_missed,
 	Colon_missed,Point_missed,Type_error,Wait_end,Semicolon_missed,Equal_missed,
-	Wait_begin,Error_in_const, Assign_missed, Then_missed,Do_missed};
+	Wait_begin,Error_in_const, Assign_missed, Then_missed,Do_missed,Name_already_describe,
+	Name_not_describe, Irreducible_types};
 class ErrorManager
 {
 	std::vector<std::pair<ErrorCodes,int>> err;

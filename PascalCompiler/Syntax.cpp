@@ -186,6 +186,18 @@ void Syntax::constDeclarationPart() //тут подумать
 			std::string variable=curToken->getIdent();
 			accept(ttIdent);
 
+			if(aviableTypes[variable]!=nullptr)
+			{
+				er->addError(Name_already_describe, CIO->getPos());
+				skipTo({ new CToken(ttOperation, semicolon), new CToken(ttOperation, typeSy), new CToken(ttOperation, varSy), new CToken(ttOperation, beginSy), new CToken(ttIdent, "") });
+				if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==semicolon)
+				{
+					accept(semicolon);
+				}
+
+				continue;
+			}
+
 			try {
 				accept(equal);
 			}catch (std:: exception)
@@ -258,20 +270,37 @@ void Syntax::varDeclaration()
 	std::vector<std::string> variablesWithoutTypes;
 
 	if(curToken->getTokenType()==ttIdent){
-		variablesWithoutTypes.push_back(curToken->getIdent());
-		accept(ttIdent);
+		if(std::find(variablesWithoutTypes.begin(),variablesWithoutTypes.end(),curToken->getIdent())!=variablesWithoutTypes.end()||aviableTypes[curToken->getIdent()]!=nullptr)
+		{
+			er->addError(Name_already_describe, CIO->getPos());
+			skipTo({ new CToken(ttOperation,comma),new CToken(ttOperation,semicolon), new CToken(ttOperation,beginSy), new CToken(ttOperation,colon) });
+		}
+		else {
+			variablesWithoutTypes.push_back(curToken->getIdent());
+			accept(ttIdent);
+		}
 	}else
 	{
 		er->addError(WaitName, CIO->getPos());
-		skipTo({ new CToken(ttOperation,comma),new CToken(ttOperation,semicolon), new CToken(ttOperation,beginSy) });
+		skipTo({ new CToken(ttOperation,comma),new CToken(ttOperation,semicolon), new CToken(ttOperation,beginSy), new CToken(ttOperation,colon) });
 	}
+
 	while(curToken->getTokenType()==ttOperation&&curToken->getOperation()==comma)
 	{
 		getNext();
-		try {
-			variablesWithoutTypes.push_back(curToken->getIdent());
-			accept(ttIdent);
-		}catch (std::exception)
+		if (curToken->getTokenType() == ttIdent) {
+			if (std::find(variablesWithoutTypes.begin(), variablesWithoutTypes.end(), curToken->getIdent()) != variablesWithoutTypes.end()||aviableTypes[curToken->getIdent()]!=nullptr)
+			{
+				er->addError(Name_already_describe, CIO->getPos());
+				skipTo({ new CToken(ttOperation,comma),new CToken(ttOperation,semicolon), new CToken(ttOperation,beginSy),new CToken(ttOperation,colon)});
+				
+			}
+			else {
+				variablesWithoutTypes.push_back(curToken->getIdent());
+				accept(ttIdent);
+			}
+		}
+		else
 		{
 			er->addError(WaitName, CIO->getPos());
 			skipTo({ new CToken(ttOperation,colon),new CToken(ttOperation,comma) });
@@ -590,6 +619,7 @@ void Syntax::simpleOperator()
 
 void Syntax::assignOperator()
 {
+	int erPos;
 	std::string variable = "";
 	if (curToken->getTokenType() == ttIdent) {
 
@@ -597,6 +627,7 @@ void Syntax::assignOperator()
 		accept(ttIdent);
 	}
 	try {
+		erPos = CIO->getPos();
 		accept(assign);
 	}catch (std::exception)
 	{
@@ -607,23 +638,24 @@ void Syntax::assignOperator()
 	auto exp=expression();
 
 	CType* left=nullptr;
-	if (aviableTypes.find(variable) != aviableTypes.end())
+	if (aviableTypes[variable]!=nullptr)
 		left = aviableTypes[variable];
 
 
-	//if(left==nullptr)
-	//{
-	//	//semntic error
-	//	std::cout << "error\n";
-	//}
-	//else if(left->isDerivedFrom(exp))
-	//{
-	//	left=left->derivedTo(left,exp);
-	//}else
-	//{
-	//	//semantic error
-	//	std::cout << "Types error\n";
-	//}
+	if(left==nullptr)
+	{
+		er->addError(Name_not_describe, erPos);
+	}
+	else if(exp!=nullptr&&left->isDerivedFrom(exp))
+	{
+		left=left->derivedTo(left,exp);
+	}else
+	{
+		if (exp == nullptr)
+			return;
+
+		er->addError(Irreducible_types, erPos);
+	}
 }
 
 CType* Syntax::expression()
@@ -664,14 +696,23 @@ CType* Syntax::expression()
 		auto right=simpleExpression();
 
 		//¬роде можно сравнивать только приводимые типы друг с другом
-		//if(left->isDerivedFrom(right))
-		//{
-		//	left = left->derivedTo(left, right);
-		//}
-		//else
-		//{
-		//	std::cout << "error\n";
-		//}
+		//ƒовольно странную логику сейчас сделаю, тут в любом случае возвращаем bool type
+		//ќшибку же мы кидаем, что вот что-то не так, а ломать не особо хочетс€ тот же if, while.
+		//Ќе знаю, насколько это правильно
+		if (left == nullptr || right == nullptr)
+			return new CBoolType();
+		if (left != nullptr) {
+			if (right != nullptr && left->isDerivedFrom(right))
+			{
+				left = left->derivedTo(left, right);
+			}
+			else {
+				if (right == nullptr)
+					return new CBoolType();
+
+				er->addError(Irreducible_types, CIO->getPos());
+			}
+		}
 
 		return new CBoolType();
 	}
@@ -702,13 +743,20 @@ CType* Syntax::simpleExpression()
 
 		CType* right = term();
 
-		//if(left->isDerivedTo(right))
-		//{
-		//	left=left->derivedTo(left,right);
-		//}else
-		//{
-		//	std::cout << "Types error\n";
-		//}
+		if (left == nullptr || right == nullptr)
+			return nullptr;
+		if (left != nullptr) {
+			if (right != nullptr && left->isDerivedFrom(right))
+			{
+				left = left->derivedTo(left, right);
+			}
+			else {
+				if (right == nullptr)
+					return nullptr;
+
+				er->addError(Irreducible_types, CIO->getPos());
+			}
+		}
 	}
 
 	return left;
@@ -738,13 +786,20 @@ CType* Syntax::term()
 		}
 		auto right=factor();
 
-		//if(left->isDerivedTo(right))
-		//{
-		//	left=left->derivedTo(left,right);
-		//}
-		//else {
-		//	std::cout << "types error\n";
-		//}
+		if(left==nullptr||right==nullptr)
+			return nullptr;
+		if (left != nullptr) {
+			if (right!=nullptr&&left->isDerivedTo(right))
+			{
+				left = left->derivedTo(left, right);
+			}
+			else {
+				if(right==nullptr)
+					return nullptr;
+
+				er->addError(Irreducible_types, CIO->getPos());
+			}
+		}
 	}
 
 	return left;
@@ -754,9 +809,6 @@ CType* Syntax::factor()
 {
 	if (curToken->getTokenType() == ttIdent)
 	{
-		//временно так пропишем!
-			accept(ttIdent);
-			return new CIntType();
 
 		if (aviableTypes.find(curToken->getIdent()) != aviableTypes.end()) {
 			auto right=aviableTypes.find(curToken->getIdent())->second;
@@ -779,8 +831,9 @@ CType* Syntax::factor()
 		}
 
 		//“ут уже семантика даже, про неописанный идентификатор...
-		er->addError(WaitName, CIO->getPos());
-		skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,doSy),new CToken(ttOperation,thenSy),new CToken(ttOperation,endSy) });
+		er->addError(Name_not_describe, CIO->getPos());
+		skipTo({ new CToken(ttOperation,semicolon),new CToken(ttOperation,doSy),new CToken(ttOperation,thenSy),new CToken(ttOperation,endSy), new CToken(ttOperation,rightpar) });
+		return nullptr;
 	}
 	else if (curToken->getTokenType() == ttConst) {
 		if(curToken->getConstVal()->getType()==0)
@@ -823,7 +876,7 @@ CType* Syntax::factor()
 		accept(lbracket);
 		listOfElements();
 		accept(rbracket);
-	}else if(curToken->getOperation()==ttOperation&&curToken->getOperation()==notSy)
+	}else if(curToken->getTokenType()==ttOperation&&curToken->getOperation()==notSy)
 	{
 		accept(notSy);
 		auto t=factor();
@@ -886,13 +939,14 @@ void Syntax::ifStatement()
 {
 	accept(ifSy);
 	auto exp=expression();
-	//if(exp->isDerivedTo(new CBoolType()))
-	//{
-	//	exp=exp->derivedTo(exp,new CBoolType());
-	//}else
-	//{
-	//	std::cout << "error\n";
-	//}
+
+	if(exp!=nullptr&&exp->isDerivedTo(new CBoolType()))
+	{
+		exp=exp->derivedTo(exp,new CBoolType());
+	}else
+	{
+		er->addError(Irreducible_types, CIO->getPos());
+	}
 
 	try {
 		accept(thenSy);
@@ -904,6 +958,8 @@ void Syntax::ifStatement()
 
 	_operator();
 
+	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
+		accept(semicolon);
 	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == elseSy)
 	{
 		accept(elseSy);
@@ -927,13 +983,14 @@ void Syntax::whileStatment()
 {
 	accept(whileSy);
 	auto left=expression();
-	if(left->isDerivedTo(new CBoolType()))
+
+	if(left!=nullptr&&left->isDerivedTo(new CBoolType()))
 	{
 		left = left->derivedTo(left, new CBoolType());
 	}
 	else
 	{
-		std::cout << "error\n";
+		er->addError(Irreducible_types, CIO->getPos());
 	}
 
 	try {
@@ -1022,7 +1079,7 @@ bool CFloatType::isDerivedTo(CType* curType)
 
 CType* CFloatType::derivedTo(CType* left,CType* right)
 {
-	left->setType(right->getType());
+	//left->setType(right->getType());
 	return left;
 }
 

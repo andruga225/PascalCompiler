@@ -1,0 +1,9 @@
+program ErrorSemanticTest1;
+const a=3.14;
+      a='str';
+      b=123;
+var a:integer;
+    b:real;
+    c:string;
+begin
+end.
