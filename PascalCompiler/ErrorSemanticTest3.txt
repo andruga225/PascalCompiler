@@ -1,0 +1,13 @@
+program ErrorSemanticTest3;
+const a=4.5;
+var b,c,d:integer;
+	p:real;
+	s:string;
+	flag:boolean;
+begin
+if(s>a) then c:=c+d;
+while(flag=true) do begin
+	if(p>0) then p:=a
+	else flag:=false;
+end;
+end.

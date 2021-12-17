@@ -89,9 +89,9 @@ void ErrorManager::ShowErrors()
 			std::cout << "Error: Irreducible types\n";
 			break;
 		}
-		strNum++;
+		//strNum++;
 	}
-	//strNum++;
+	strNum++;
 
 	for (strNum; strNum < programText.size(); ++strNum)
 		std::cout << programText[strNum];

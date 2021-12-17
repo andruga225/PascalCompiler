@@ -606,8 +606,9 @@ void Syntax::_operator()
 	//проще выбрать сложный, в других случаях будет простой, вроде нет пересечений с ключевыми словами
 	if (curToken->getTokenType() == ttOperation && isOper({beginSy, ifSy, whileSy, withSy}))
 		complexOperator();
-	else 
+	else {
 		simpleOperator();
+	}
 }
 
 void Syntax::simpleOperator()
@@ -789,7 +790,7 @@ CType* Syntax::term()
 		if(left==nullptr||right==nullptr)
 			return nullptr;
 		if (left != nullptr) {
-			if (right!=nullptr&&left->isDerivedTo(right))
+			if (right!=nullptr&&left->isDerivedFrom(right))
 			{
 				left = left->derivedTo(left, right);
 			}
@@ -958,8 +959,8 @@ void Syntax::ifStatement()
 
 	_operator();
 
-	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
-		accept(semicolon);
+	/*if (curToken->getTokenType() == ttOperation && curToken->getOperation() == semicolon)
+		accept(semicolon);*/
 	if (curToken->getTokenType() == ttOperation && curToken->getOperation() == elseSy)
 	{
 		accept(elseSy);
